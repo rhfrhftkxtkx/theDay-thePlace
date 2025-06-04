@@ -22,7 +22,7 @@ interface ApiErrorDetail {
 	message: string;
 }
 
-// API 응답 전체 구조에 대한 타입 (선택 사항이지만, 일관성을 위해 정의 가능)
+// API 응답 전체 구조에 대한 타입
 export interface ApiResponse {
     locations: ApiLocationData[];
     error: string | null;
@@ -74,7 +74,7 @@ export const GET: RequestHandler = async () => {
 		});
 		
 
-		if (allLocations.length > 0 || errors.length === 0) { // 데이터가 있거나, 데이터는 없지만 명시적인 DB 에러도 없는 경우 (빈 결과 포함)
+		if (allLocations.length > 0 || errors.length === 0) { // 데이터가 있거나, 데이터는 없지만 DB 에러도 없는 경우
 			console.log(`[+server.ts] Supabase에서 가져온 전체 서울 위치 데이터 (${allLocations.length}개)`);
 			const responsePayload: ApiResponse = {
 				locations: allLocations,
