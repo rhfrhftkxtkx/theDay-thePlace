@@ -1,17 +1,16 @@
 // src/routes/api/locations/+server.ts
 import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types'; // SvelteKit이 생성한 타입 사용
+import type { RequestHandler } from './$types';
 import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
 const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
-// API가 반환하는 각 위치 항목의 타입을 정의 (다른 파일에서도 import하여 사용 가능)
 export interface ApiLocationData {
 	contentid: number;
 	title: string | null;
-	mapx: string | null; // 경도 (Longitude)
-	mapy: string | null; // 위도 (Latitude)
+	mapx: string | null;
+	mapy: string | null;
 	type: 'museum' | 'memorial' | 'exhibition';
 	addr1?: string | null;
 	overview?: string | null;
@@ -22,7 +21,6 @@ interface ApiErrorDetail {
 	message: string;
 }
 
-// API 응답 전체 구조에 대한 타입
 export interface ApiResponse {
     locations: ApiLocationData[];
     error: string | null;
@@ -58,10 +56,10 @@ export const GET: RequestHandler = async () => {
 			const itemType = tablesToQuery[index].type;
 
 			if (result.status === 'fulfilled') {
-				const { data, error } = result.value;
-				if (error) {
-					console.error(`[+server.ts] Supabase error (${tableName}):`, error);
-					errors.push({ table: tableName, message: error.message });
+				const { data, error: supabaseQueryError } = result.value; // supabase specific error
+				if (supabaseQueryError) {
+					console.error(`[+server.ts] Supabase error (${tableName}):`, supabaseQueryError);
+					errors.push({ table: tableName, message: supabaseQueryError.message });
 				} else if (data) {
 					allLocations = allLocations.concat(
 						data.map(item => ({ ...item, type: itemType }))
@@ -73,23 +71,21 @@ export const GET: RequestHandler = async () => {
 			}
 		});
 		
+		const responsePayload: ApiResponse = {
+			locations: allLocations,
+			error: errors.length > 0 ? `일부 테이블(${errors.map(e => e.table).join(', ')})에서 데이터를 가져오는 데 실패했습니다.` : null,
+			partialErrorDetails: errors.length > 0 ? errors : null
+		};
 
-		if (allLocations.length > 0 || errors.length === 0) { // 데이터가 있거나, 데이터는 없지만 DB 에러도 없는 경우
+		if (allLocations.length > 0 || errors.length === 0) {
 			console.log(`[+server.ts] Supabase에서 가져온 전체 서울 위치 데이터 (${allLocations.length}개)`);
-			const responsePayload: ApiResponse = {
-				locations: allLocations,
-				error: errors.length > 0 ? `일부 테이블(${errors.map(e => e.table).join(', ')})에서 데이터를 가져오는 데 실패했습니다.` : null,
-				partialErrorDetails: errors.length > 0 ? errors : null
-			};
 			return json(responsePayload, { status: 200 });
-		} else { // allLocations.length === 0 && errors.length > 0 (데이터도 없고, 에러만 있는 경우)
+		} else { // allLocations.length === 0 && errors.length > 0
 			console.error('[+server.ts] 모든 테이블에서 데이터를 가져오는데 실패했거나 데이터가 없습니다:', errors);
-			const responsePayload: ApiResponse = {
-				locations: [],
-				error: `모든 테이블에서 데이터를 가져오지 못했거나 오류가 발생했습니다. (${errors.map(e => e.table).join(', ')})`,
-				partialErrorDetails: errors
-			};
-			return json(responsePayload, { status: 500 }); // 에러가 주된 상황이므로 500
+			// 에러가 주된 상황이므로 HTTP 상태 코드를 500으로 할 수도 있지만,
+			// 클라이언트에서 error 메시지를 보고 판단하도록 200으로 하고 error 필드를 채울 수도 있습니다.
+			// 여기서는 500으로 명확한 서버측 문제를 알립니다.
+			return json(responsePayload, { status: 500 }); 
 		}
 
 	} catch (e: unknown) {
