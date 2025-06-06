@@ -121,6 +121,8 @@
 		}
 	}
 
+	// --- Lifecycle Functions ---
+
 	onMount(() => {
 		if (window.kakao && window.kakao.maps) { // kakao SDK가 제대로 왔다면면
 			window.kakao.maps.load(() => {
@@ -170,16 +172,23 @@
 	});
 </script>
 
-<div class="search-bar-container">
-	<input 
-		type="text" 
-		bind:value={searchQuery} 
-		placeholder="박물관, 기념관, 전시관 검색..." 
-		on:keydown={(e) => { if (e.key === 'Enter') handleSearch(); }}
-		on:click|stopPropagation  
-	/>
-	<button on:click|stopPropagation={handleSearch}>검색</button>
-	</div>
+<div class="top-left-controls">
+    <form class="search-bar-container" on:submit|preventDefault={handleSearch}>
+        <input 
+            type="text" 
+            bind:value={searchQuery} 
+            placeholder="박물관, 기념관, 전시관 검색..." 
+        />
+        <button type="submit">검색</button>
+    </form>
+</div>
+
+<div class="filter-buttons-container">
+    <a href="/page1" class="filter-button">박물관</a>
+    <a href="/page2" class="filter-button">유적지</a>
+    <a href="/page3" class="filter-button">소장 박물관</a>
+    <a href="/page4" class="filter-button">국보/유물</a>
+</div>
 
 {#if data}
 	{#if data.error && !isSearchResultsPanelVisible}
@@ -239,249 +248,188 @@
 			<button class="close-button" on:click={closeBottomSheet} aria-label="닫기">&times;</button>
 		</div>
 		<div class="bottom-sheet-content">
-			<p><strong>종류:</strong> 
-				{#if selectedLocation.type === 'museum'}박물관
-				{:else if selectedLocation.type === 'memorial'}기념관
-				{:else if selectedLocation.type === 'exhibition'}전시관
-				{:else if selectedLocation.type === 'search_result'}검색된 장소 (DB 기반)
-				{:else}장소{/if}
-			</p>
-			{#if selectedLocation.addr1} <p><strong>주소:</strong> {selectedLocation.addr1}</p> {/if}
-			{#if selectedLocation.overview} <div class="overview-content"><strong>개요:</strong><p>{@html selectedLocation.overview}</p></div> {/if}
-			<p style="font-size:0.8em; color: #666;">ID: {selectedLocation.contentid}</p>
-			<p style="font-size:0.8em; color: #666;">
-				좌표: 
-				{selectedLocation.mapy ? parseFloat(selectedLocation.mapy).toFixed(6) : 'N/A'}, 
-				{selectedLocation.mapx ? parseFloat(selectedLocation.mapx).toFixed(6) : 'N/A'}
-			</p>
-		</div>
+            <p class="preparation-message">
+				...
+            </p>
+        </div>
 	</div>
 {/if}
 
 <style>
-	/* Global and Map Styles */
-	:global(html), 
-	:global(body) { 
-		height: 100%; 
-		margin: 0; 
-		padding: 0; 
-		overflow: hidden; 
-	}
-	.map-fullscreen { 
-		width: 100vw; 
-		height: 100vh; 
-		position: relative; 
-		z-index: 1; 
-	}
-
-	/* Search Bar Styles */
-	.search-bar-container { 
-		position: fixed; 
-		top: 15px; 
-		left: 15px; 
-		z-index: 1000; 
-		background-color: white; 
-		padding: 10px; 
-		border-radius: 8px; 
-		box-shadow: 0 2px 8px rgba(0,0,0,0.15); 
-		display: flex; 
-		gap: 8px; 
-		align-items: center;
-	}
-	.search-bar-container input[type="text"] { 
-		padding: 8px 12px; 
-		border: 1px solid #ccc; 
-		border-radius: 4px; 
-		min-width: 240px;
-		font-size: 1em; 
-	}
-	.search-bar-container button { /* 검색 버튼 */
-		padding: 8px 15px; 
-		border: none; 
-		background-color: #5E7FF1; 
-		color: white; 
-		border-radius: 4px; 
-		cursor: pointer; 
-		font-size: 1em; 
-		font-weight: bold; 
-		height: 38px; 
-	}
-	.search-bar-container button:hover { 
-		background-color: #4a6cde; 
-	}
-
-	/* Status Message Styles */
-	.status-message { 
-		position: fixed; 
-		top: 80px; 
-		left: 50%; 
-		transform: translateX(-50%); 
-		padding: 10px 15px; 
-		border-radius: 5px; 
-		z-index: 1001; 
-		font-size: 0.9em; 
-		box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
-		text-align: center;
-	}
-	.status-message ul {
-		font-size: 0.8em; 
-		margin-top: 5px; 
-		padding-left: 15px;
-		text-align: left;
-	}
-	.error-message { background-color: rgba(255,0,0,0.8); color: white; }
-	.info-message { background-color: rgba(100,100,100,0.8); color: white; }
-	.loading-message { background-color: rgba(0,0,0,0.5); color: white; }
-
-	/* Search Results Panel Styles */
-	.search-results-panel { 
-		position: fixed; 
-		bottom: 0; 
-		left: 0; 
-		width: 100%; 
-		height: calc(100vh / 2.5); 
-		max-height: 45vh; 
-		background-color: white; 
-		border-top: 1px solid #ddd; 
-		box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
-		z-index: 997; 
-		display: flex; 
-		flex-direction: column; 
-		box-sizing: border-box; 
-	}
-	.panel-header { 
-		display: flex; 
-		justify-content: space-between; 
-		align-items: center; 
-		padding: 10px 15px; 
-		border-bottom: 1px solid #eee;
-		flex-shrink: 0;
-	}
-	.panel-header h4 { 
-		margin: 0; 
-		font-size: 1.1em; 
-	}
-	.close-panel-button { 
-		background: none; 
-		border: none; 
-		font-size: 1.6em; 
-		cursor: pointer; 
-		line-height: 1; 
-		padding: 0 5px; 
-	}
-	.search-results-panel ul { 
-		list-style: none; 
-		padding: 0; 
-		margin: 0; 
-		overflow-y: auto; 
-		flex-grow: 1; 
-	}
-	.search-results-panel li {
-		padding: 0; 
-		border-bottom: 1px solid #f0f0f0;
-	}
-	.search-results-panel li:last-child {
-		border-bottom: none;
-	}
-    .list-item-button {
-        display: block; 
-        width: 100%;
-        padding: 12px 15px; 
-        background: none;
-        border: none;
-        cursor: pointer;
-        text-align: left; 
-        font-size: 0.95em; 
-		line-height: 1.4;
+    /* Global and Map Styles */
+    :global(html), 
+    :global(body) { 
+        height: 100%; 
+        margin: 0; 
+        padding: 0; 
+        overflow: hidden; 
     }
-    .list-item-button:hover {
-		background-color: #f9f9f9;
-	}
-	.list-item-button p { 
-		font-size: 0.85em; 
-		color: #555; 
-		margin: 4px 0 0 0; 
-	}
+    .map-fullscreen { 
+        width: 100vw; 
+        height: 100vh; 
+        position: relative; 
+        z-index: 1; 
+        background-color: #e9e5dc;
+    }
 
-	/* Bottom Sheet (Detail Panel) Styles */
-	.bottom-sheet-overlay { 
-		position: fixed; 
-		top: 0; 
-		left: 0; 
-		width: 100%; 
-		height: 100%; 
-		background-color: rgba(0,0,0,0.3); 
-		z-index: 998; 
-		border: none; 
-		padding: 0; 
-		cursor: pointer; 
-	}
-	.bottom-sheet { 
-		position: fixed; 
-		bottom: 0; 
-		left: 0; 
-		width: 100%; 
-		height: calc(100vh / 3); 
-		max-height: 40vh; 
-		background-color: white; 
-		border-top-left-radius: 16px; 
-		border-top-right-radius: 16px; 
-		box-shadow: 0 -2px 10px rgba(0,0,0,0.15); 
-		z-index: 999; 
-		display: flex; 
-		flex-direction: column; 
-		box-sizing: border-box; 
-	}
-	.bottom-sheet-header { 
-		display: flex; 
-		justify-content: space-between; 
-		align-items: center; 
-		padding: 12px 16px; 
-		border-bottom: 1px solid #eee;
-		flex-shrink: 0;
-	}
-	.bottom-sheet-header h3 { 
-		margin: 0; 
-		font-size: 1.1em; 
-		white-space: nowrap; 
-		overflow: hidden; 
-		text-overflow: ellipsis; 
-		padding-right: 10px; 
-	}
-	.close-button { /* 바텀 시트 헤더의 닫기 버튼 */
-		background: none; 
-		border: none; 
-		font-size: 1.5em; 
-		cursor: pointer; 
-		padding: 0px 5px; 
-		line-height: 1; 
-		flex-shrink: 0; 
-	}
-	.bottom-sheet-content { 
-		padding: 16px; 
-		overflow-y: auto; 
-		flex-grow: 1; 
-	}
-	.bottom-sheet-content p { 
-		margin: 0 0 10px 0; 
-		font-size: 0.9em; 
-		line-height: 1.5; 
-	}
-	.bottom-sheet-content strong { 
-		font-weight: 600;
-	}
-	.overview-content { 
-		max-height: 100px; 
-		overflow-y: auto; 
-		border: 1px solid #f0f0f0; 
-		padding: 8px; 
-		margin-top: 5px; 
-		border-radius: 4px; 
-		font-size: 0.85em; 
-		background-color: #f9f9f9; 
-	}
-	.overview-content p { 
-		margin: 0; 
-		word-break: break-all; 
-	}
+    /* --- Search Area Styles (수정됨) --- */
+    .top-left-controls {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        right: 15px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-bar-container {
+        flex-grow: 1;
+        background-color: white; 
+        padding: 8px;
+        border-radius: 8px; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15); 
+        display: flex; 
+        gap: 8px; 
+        align-items: center;
+        min-width: 0;
+    }
+    .search-bar-container input[type="text"] { 
+        padding: 8px 12px; 
+        border-radius: 4px; 
+        width: 100%;
+        font-size: 1em;
+        border: none;
+        outline: none;
+        background: transparent;
+    }
+    .search-bar-container button {
+        padding: 8px 15px; 
+        border: none;
+        background-color: #5E7FF1; 
+        color: white; 
+        border-radius: 4px; 
+        cursor: pointer; 
+        font-size: 1em; 
+        font-weight: bold; 
+        height: 38px;
+        white-space: nowrap;
+    }
+    .search-bar-container button:hover { 
+        background-color: #4a6cde; 
+    }
+
+	/* --- Filter Buttons Styles --- */
+    .filter-buttons-container {
+        position: fixed;
+        top: 84px;
+        left: 15px;
+        right: 15px;
+        z-index: 1000;
+        display: flex;
+        gap: 8px;
+    }
+    .filter-button {
+        flex-grow: 1; /* 버튼들이 동일한 비율로 공간을 차지 */
+        flex-basis: 0; /* 모든 버튼이 동일한 기본 너비에서 시작 */
+        
+        padding: 8px 16px;
+        border: 1px solid #ccc;
+        border-radius: 15px;
+        background-color: rgba(255, 255, 255, 0.9);
+        color: #333;
+        font-size: 0.9em;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background-color 0.2s, color 0.2s;
+        text-decoration: none; 
+        text-align: center; /* 버튼 너비가 변하므로 텍스트 중앙 정렬 */
+    }
+
+    .filter-button:hover {
+        background-color: #f0f0f0;
+    }
+
+    /* --- 기타 UI 스타일 --- */
+    .status-message { 
+        position: fixed; 
+        top: 85px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        padding: 10px 15px; 
+        border-radius: 5px; 
+        z-index: 1001; 
+        font-size: 0.9em; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+        text-align: center;
+    }
+    
+    .bottom-sheet-content {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
+    .preparation-message {
+        font-size: 1.1em;
+        text-align: center;
+        line-height: 1.6;
+    }
+    .bottom-sheet-overlay { 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        background-color: rgba(0,0,0,0.3); 
+        z-index: 998; 
+        border: none; 
+        padding: 0; 
+        cursor: pointer; 
+    }
+    .bottom-sheet { 
+        position: fixed; 
+        bottom: 0; 
+        left: 0; 
+        width: 100%; 
+        min-height: 25vh;
+        max-height: 90vh; 
+        background-color: white; 
+        border-top-left-radius: 16px; 
+        border-top-right-radius: 16px; 
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.15); 
+        z-index: 999; 
+        display: flex; 
+        flex-direction: column; 
+        box-sizing: border-box; 
+    }
+    .bottom-sheet-header { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        padding: 12px 16px; 
+        border-bottom: 1px solid #eee;
+        flex-shrink: 0;
+    }
+    .bottom-sheet-header h3 { 
+        margin: 0; 
+        font-size: 1.4em; 
+        font-weight: 600;
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        padding-right: 10px; 
+    }
+    .close-button {
+        background: none; 
+        border: none; 
+        font-size: 1.5em; 
+        cursor: pointer; 
+        padding: 0px 5px; 
+        line-height: 1; 
+        flex-shrink: 0; 
+    }
 </style>
