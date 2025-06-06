@@ -122,22 +122,19 @@
 	}
 
 	onMount(() => {
-		console.log('(+page.svelte) onMount 시작됨');
-		if (window.kakao && window.kakao.maps) {
+		if (window.kakao && window.kakao.maps) { // kakao SDK가 제대로 왔다면면
 			window.kakao.maps.load(() => {
-				console.log('(+page.svelte) Kakao Maps SDK 모든 기능 로드 완료됨.');
 				const mapOptions = { 
 					center: new window.kakao.maps.LatLng(NATIONAL_MUSEUM_OF_KOREA_LAT, NATIONAL_MUSEUM_OF_KOREA_LNG),
 					level: 7,
 				};
-				try {
+				try { // 지도 생성
 					map = new window.kakao.maps.Map(mapContainer, mapOptions);
-					console.log('(+page.svelte) 지도 생성 성공:', map);
 					mapClickListener = window.kakao.maps.event.addListener(map, 'click', handleMapClick);
 
 					if (map && data && !data.error && data.locations && data.locations.length > 0) {
 						currentDbMarkers = [];
-						data.locations.forEach(loc => {
+						data.locations.forEach(loc => { // 각 장소 정보(loc)에서 위도(mapy)와 경도(mapx)를 가져와 숫자로 변환
 							const lat = loc.mapy ? parseFloat(loc.mapy) : NaN;
 							const lng = loc.mapx ? parseFloat(loc.mapx) : NaN;
 							if (!isNaN(lat) && !isNaN(lng) && loc.title) {
@@ -158,11 +155,11 @@
 								currentDbMarkers.push({ marker, infowindow, locationData: loc });
 							} else { console.warn(`[${loc.title || '제목 없음'}] 유효하지 않은 위치 데이터: mapy=${loc.mapy}, mapx=${loc.mapx}`); }
 						});
-						console.log(`(+page.svelte) ${currentDbMarkers.length}개의 DB 마커 생성 완료`);
-					} else { /* ... (데이터 로딩 에러 또는 데이터 없음 처리) ... */ }
+					}
+					// 지도 안전성을 위한 미세한 텀텀
 					setTimeout(() => { if (map && map.relayout) map.relayout(); console.log('map.relayout() called'); }, 100);
 				} catch (mapInitError: unknown) { console.error('(+page.svelte) 지도 또는 DB 마커 처리 중 에러 발생:', mapInitError); }
-			});
+			}); // kakao.maps.load() 콜백의 끝
 		} else { console.error('(+page.svelte) Kakao Maps SDK 찾을 수 없음'); alert('지도 서비스 초기화 불가.'); }
 	});
 
@@ -312,7 +309,6 @@
 	.search-bar-container button:hover { 
 		background-color: #4a6cde; 
 	}
-    /* .reset-button 스타일은 제거됨 */
 
 	/* Status Message Styles */
 	.status-message { 
