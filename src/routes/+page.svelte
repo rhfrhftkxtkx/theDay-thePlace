@@ -329,10 +329,14 @@
     title={selectedLocation.title || '상세 정보'}
     isOpen={isBottomSheetOpen}
     closeOffcanvas={closeBottomSheet}
-    initialHeight={browser ? window.innerHeight * 0.3 : 300}
+    initialHeight={80}
   >
     <div class="bottom-sheet-content">
-      <p class="preparation-message">...</p>
+      <div class="scrollable-wrapper">
+				<p class="overview-text">
+					{selectedLocation.overview || '등록된 개요 정보가 없습니다.'}
+				</p>
+			</div>
     </div>
   </OffcanvasTab>
 {/if}
@@ -354,7 +358,7 @@
     background-color: #e9e5dc;
   }
 
-  /* --- Search Area Styles (수정됨) --- */
+  /* --- Search Area Styles --- */
   .top-left-controls {
     position: fixed;
     top: 15px;
@@ -450,16 +454,21 @@
   }
 
   .bottom-sheet-content {
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
+    height: 100%;
     padding: 20px;
     box-sizing: border-box;
-    overflow-y: auto;
   }
-  .preparation-message {
+  .overview-text {
     font-size: 1.1em;
     text-align: center;
     line-height: 1.6;
   }
+
+  .scrollable-wrapper {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto; 
+    }
+
+    
 </style>
