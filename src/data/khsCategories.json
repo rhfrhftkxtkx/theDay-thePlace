@@ -1,0 +1,72 @@
+[
+	{
+		"code": "ccbaKdcd",
+		"name": "지정종목",
+		"item": [
+			{ "code": "00", "name": "전체", "item": [] },
+			{ "code": "11", "name": "국보", "item": [] },
+			{ "code": "12", "name": "보물", "item": [] },
+			{ "code": "13", "name": "사적", "item": [] },
+			{ "code": "14", "name": "사적 및 명승", "item": [] },
+			{ "code": "15", "name": "명승", "item": [] },
+			{ "code": "16", "name": "천연기념물", "item": [] },
+			{ "code": "17", "name": "국가무형유산", "item": [] },
+			{ "code": "18", "name": "국가민속문화유산", "item": [] },
+			{ "code": "21", "name": "시도유형문화유산", "item": [] },
+			{ "code": "22", "name": "시도무형유산", "item": [] },
+			{ "code": "23", "name": "시도기념물", "item": [] },
+			{ "code": "24", "name": "시도민속문화유산", "item": [] },
+			{ "code": "25", "name": "시도도등록유산", "item": [] },
+			{ "code": "31", "name": "문화유산자료", "item": [] },
+			{ "code": "79", "name": "국가등록유산", "item": [] },
+			{ "code": "80", "name": "이북5도 무형유산", "item": [] }
+		]
+	},
+	{
+		"code": "ccbaCtcd",
+		"name": "지역",
+		"item": [
+			{ "code": "00", "name": "전체", "item": [] },
+			{ "code": "11", "name": "서울특별시", "item": [] },
+			{ "code": "21", "name": "부산광역시", "item": [] },
+			{ "code": "22", "name": "대구광역시", "item": [] },
+			{ "code": "23", "name": "인천광역시", "item": [] },
+			{ "code": "24", "name": "광주광역시", "item": [] },
+			{ "code": "25", "name": "대전광역시", "item": [] },
+			{ "code": "26", "name": "울산광역시", "item": [] },
+			{ "code": "45", "name": "세종특별자치시", "item": [] },
+			{ "code": "31", "name": "경기도", "item": [] },
+			{ "code": "32", "name": "강원도", "item": [] },
+			{ "code": "33", "name": "충청북도", "item": [] },
+			{ "code": "34", "name": "충청남도", "item": [] },
+			{ "code": "35", "name": "전라북도", "item": [] },
+			{ "code": "36", "name": "전라남도", "item": [] },
+			{ "code": "37", "name": "경상북도", "item": [] },
+			{ "code": "38", "name": "경상남도", "item": [] },
+			{ "code": "50", "name": "제주특별자치도", "item": [] }
+		]
+	},
+	{
+		"code": "ccbaPcd1",
+		"name": "시대",
+		"item": [
+			{ "code": "00", "name": "전체", "item": [] },
+			{ "code": "01", "name": "선사시대", "item": [] },
+			{ "code": "03", "name": "석기시대", "item": [] },
+			{ "code": "05", "name": "청동기시대", "item": [] },
+			{ "code": "07", "name": "철기시대", "item": [] },
+			{ "code": "09", "name": "삼한시대", "item": [] },
+			{ "code": "10", "name": "삼국시대", "item": [] },
+			{ "code": "11", "name": "삼국:고구려", "item": [] },
+			{ "code": "12", "name": "삼국:백제", "item": [] },
+			{ "code": "13", "name": "삼국:신라", "item": [] },
+			{ "code": "15", "name": "발해", "item": [] },
+			{ "code": "20", "name": "통일신라", "item": [] },
+			{ "code": "30", "name": "고려시대", "item": [] },
+			{ "code": "40", "name": "조선시대", "item": [] },
+			{ "code": "45", "name": "대한제국시대", "item": [] },
+			{ "code": "50", "name": "일제강점기", "item": [] },
+			{ "code": "60", "name": "시대미상", "item": [] }
+		]
+	}
+]
