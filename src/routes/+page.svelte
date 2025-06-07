@@ -329,7 +329,7 @@
     title={selectedLocation.title || '상세 정보'}
     isOpen={isBottomSheetOpen}
     closeOffcanvas={closeBottomSheet}
-    initialHeight={browser ? window.innerHeight * 0.3 : 300}
+    initialHeight={browser ? window.innerHeight * 0.2 : 150}
   >
     <div class="bottom-sheet-content">
       <p class="preparation-message">...</p>

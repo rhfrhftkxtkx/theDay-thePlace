@@ -58,7 +58,7 @@
 
     let newHeight = startHeight - deltaY;
 
-    const minHeight = 180; // 최소 높이 설정
+    const minHeight = 80; // 최소 높이 설정
     const maxHeight = window.innerHeight * 0.9; // 최대 높이 설정
     newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
 
