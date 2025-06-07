@@ -37,7 +37,13 @@
     {
       code: 'museum',
       name: '박물관',
-      item: visitKorAreaCode2,
+      item: [
+        {
+          code: 'areaCode',
+          name: '지역',
+          item: visitKorAreaCode2,
+        },
+      ],
     },
   ];
 
