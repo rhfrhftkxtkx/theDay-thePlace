@@ -333,10 +333,10 @@
   >
     <div class="bottom-sheet-content">
       <div class="scrollable-wrapper">
-				<p class="overview-text">
-					{selectedLocation.overview || '등록된 개요 정보가 없습니다.'}
-				</p>
-			</div>
+        <p class="overview-text">
+          {selectedLocation.overview || '등록된 개요 정보가 없습니다.'}
+        </p>
+      </div>
     </div>
   </OffcanvasTab>
 {/if}
@@ -465,10 +465,8 @@
   }
 
   .scrollable-wrapper {
-        width: 100%;
-        height: 100%;
-        overflow-y: auto; 
-    }
-
-    
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+  }
 </style>
