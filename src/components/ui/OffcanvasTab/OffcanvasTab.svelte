@@ -2,6 +2,8 @@
   import { Fa } from 'svelte-fa';
   import { faXmark } from '@fortawesome/free-solid-svg-icons';
   import { browser } from '$app/environment';
+  import { fly } from 'svelte/transition';
+  import { quadOut } from 'svelte/easing';
 
   let {
     title,
@@ -19,13 +21,13 @@
   let startHeight = $state(0);
 
   function handleCloseOffcanvas() {
-    offcanvasTabElement?.classList.remove('offcanvas-tab-enter-active');
-    offcanvasTabElement?.classList.add('offcanvas-tab-leave-active');
+    //offcanvasTabElement?.classList.remove('offcanvas-tab-enter-active');
+    //offcanvasTabElement?.classList.add('offcanvas-tab-leave-active');
     // 애니메이션이 끝난 후 offcanvas를 닫음
-    setTimeout(() => {
-      closeOffcanvas();
-      offcanvasTabElement?.classList.remove('offcanvas-tab-leave-active');
-    }, 300); // 애니메이션 시간과 일치시킴
+    // setTimeout(() => {
+    closeOffcanvas();
+    //   offcanvasTabElement?.classList.remove('offcanvas-tab-leave-active');
+    // }, 300); // 애니메이션 시간과 일치시킴
   }
 
   // 드래그 시 오프캔버스 탭의 높이를 조정하는 함수
@@ -98,155 +100,44 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <div
-    class="offcanvas-backdrop"
+    class="fixed w-full h-full top-0 left-0 right-0 bottom-0 bg-black/30 z-1040"
     bind:this={offcanvasBackdropElement}
     onclick={closeOffcanvas}
   ></div>
-  <div
-    class="offcanvas-tab"
-    class:offcanvas-tab-enter-active={isOpen}
-    class:offcanvas-tab-leave-active={false}
-    bind:this={offcanvasTabElement}
-    style="height: {currentOffcanvasHeight}px;"
-  >
-    <div
-      class="offcanvas-tab-drag-handle"
-      onmousedown={handleDragStart}
-      ontouchstart={handleDragStart}
-      role="slider"
-      aria-label="Drag to resize"
-      aria-valuemin={100}
-      aria-valuemax={Math.round(window.innerHeight * 0.9)}
-      aria-valuenow={currentOffcanvasHeight}
-      tabindex="0"
-    >
-      <div class="drag-handle-indicator"></div>
-    </div>
-    <div class="offcanvas-tab-header">
-      <span class="header-span">&nbsp;</span>
-      <h3 class="header-title">{title}</h3>
-      <button
-        class="close-button"
-        onclick={handleCloseOffcanvas}
-        aria-label="Close offcanvas"
-      >
-        <Fa icon={faXmark} />
-      </button>
-    </div>
-    <div
-      class="offcanvas-tab-content"
-      style="height: calc(100% - {currentOffcanvasHeight}px);"
-    >
-      {@render children()}
-    </div>
-  </div>
 {/if}
-
-<style>
-  .offcanvas-tab {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: var(--background-color);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    z-index: 1050;
-    border-radius: 10px 10px 0 0;
-  }
-
-  @keyframes slideIn {
-    0% {
-      transform: translateY(100%);
-    }
-    100% {
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideOut {
-    0% {
-      transform: translateY(0);
-    }
-    100% {
-      transform: translateY(100%);
-    }
-  }
-
-  .offcanvas-tab-enter-active {
-    animation: slideIn 0.3s ease-out;
-  }
-
-  .offcanvas-tab-leave-active {
-    animation: slideOut 0.3s ease-out;
-  }
-
-  .offcanvas-tab-drag-handle {
-    width: 100%;
-    padding: 8px 0;
-    cursor: ns-resize;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--background-color);
-    flex-shrink: 0;
-  }
-
-  .drag-handle-indicator {
-    width: 10%;
-    height: 5px;
-    background-color: #bdbdbd;
-    border-radius: 3px;
-  }
-
-  .offcanvas-tab-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
-  }
-
-  .header-span {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    padding: 5px;
-  }
-
-  .header-title {
-    margin: 0;
-    padding: 0;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .close-button {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    padding: 5px;
-    cursor: pointer;
-    line-height: 1;
-  }
-
-  .offcanvas-tab-content {
-    padding: 0;
-    flex-grow: 1;
-  }
-
-  .offcanvas-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1040;
-  }
-</style>
+<div
+  class="fixed flex flex-col bottom-0 left-0 right-0 bg-white shadow-[0_-2px_20px_10px] shadow-black/30 overflow-hidden z-1050 rounded-t-xl"
+  transition:fly={{ y: initialHeight, duration: 300, easing: quadOut }}
+  bind:this={offcanvasTabElement}
+  style="height: {currentOffcanvasHeight}px;"
+>
+  <div
+    class="w-full py-2 h-4 cursor-ns-resize flex justify-center items-center shrink-0"
+    onmousedown={handleDragStart}
+    ontouchstart={handleDragStart}
+    role="slider"
+    aria-label="Drag to resize"
+    aria-valuemin={100}
+    aria-valuemax={browser ? Math.round(window.innerHeight * 0.9) : 450}
+    aria-valuenow={currentOffcanvasHeight}
+    tabindex="0"
+  >
+    <div class="w-20 h-1 bg-gray-300 rounded-full"></div>
+  </div>
+  <div
+    class="flex justify-between items-center py-3 px-4 border border-gray-200"
+  >
+    <span class="bg-none p-2 text-xl">&nbsp;</span>
+    <h3 class="items-center justify-center text-center">{title}</h3>
+    <button
+      class="bg-none text-xl p-2 cursor-pointer"
+      onclick={handleCloseOffcanvas}
+      aria-label="Close offcanvas"
+    >
+      <Fa icon={faXmark} />
+    </button>
+  </div>
+  <div class="grow" style="height: calc(100% - {currentOffcanvasHeight}px);">
+    {@render children()}
+  </div>
+</div>
