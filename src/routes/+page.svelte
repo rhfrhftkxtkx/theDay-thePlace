@@ -6,7 +6,7 @@
   import { slide } from 'svelte/transition'; // 애니메이션
 
   import type { PageData, ApiLocationData } from './+page';
-  import OffcanvasTab from '$/components/ui/OffcanvasTab/OffcanvasTab.svelte';
+  import OffcanvasTab from '$/components/ui/OffcanvasTab.svelte';
   import { browser } from '$app/environment';
 
   // Props

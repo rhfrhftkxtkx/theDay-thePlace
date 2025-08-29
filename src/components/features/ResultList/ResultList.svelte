@@ -14,7 +14,7 @@
   onMount(() => {});
 </script>
 
-<CardHolder title="국가 유산" value={'ccba'}>
+<CardHolder title="국가 유산" value={'ccba'} more_title={'국가 유산 더보기'}>
   {#if isLoading}
     <p>로딩 중...</p>
   {:else if ccbaItems.length === 0 && museumItems.length === 0}
@@ -25,7 +25,7 @@
     {/each}
   {/if}
 </CardHolder>
-<CardHolder title="박물관" value={'museum'}>
+<CardHolder title="박물관" value={'museum'} more_title={'박물관 더보기'}>
   {#if isLoading}
     <p>로딩 중...</p>
   {:else if ccbaItems.length === 0 && museumItems.length === 0}

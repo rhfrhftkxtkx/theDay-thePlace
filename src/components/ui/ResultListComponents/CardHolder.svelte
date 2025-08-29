@@ -1,66 +1,42 @@
 <script lang="ts">
-  import { redirect } from '@sveltejs/kit';
-
   export let title: string = 'Card Holder';
   export let value: string = '';
+  export let more_title: string = '';
 </script>
 
-<div class="card-holder-title">
-  <h4>{title}</h4>
+<div class="w-full flex flex-row items-center justify-between">
+  <h4 class="text-lg font-semibold">{title}</h4>
   {#if value}
     <a
-      class="card-holder-more-button"
+      class="bg-transparent cursor-pointer text-base focus:outline-none rounded-full p-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 ease-in-out"
       href={`/common/${value.toLocaleLowerCase()}`}
     >
-      {value}
+      {more_title}
     </a>
   {/if}
 </div>
-<div class="card-holder">
-  <div class="card-holder-contents">
+<div class="flex flex-col items-start w-full p-4 overflow-auto mb-4 scrollbar">
+  <div class="flex flex-row gap-4 justify-center">
     <slot />
   </div>
 </div>
 
-<style>
-  .card-holder {
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    width: 100%;
-    padding: 1rem;
-    overflow: auto;
-    margin-bottom: 1rem;
-  }
-  .card-holder-title {
-    width: 100%;
-    display: flex;
-    margin-bottom: 0;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+<style lang="postcss">
+  @import 'tailwindcss';
+
+  .scrollbar::-webkit-scrollbar {
+    height: 8px;
   }
 
-  .card-holder-more-button {
-    background-color: transparent;
-    border: none;
-    color: var(--color-primary);
-    cursor: pointer;
-    font-size: 1rem;
-    text-decoration: underline;
+  .scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent mx-1;
   }
 
-  .card-holder-title h4 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--color-primary);
+  .scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-500 rounded-full border-2 border-transparent;
   }
 
-  .card-holder-contents {
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-    justify-content: center;
+  .scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
   }
 </style>

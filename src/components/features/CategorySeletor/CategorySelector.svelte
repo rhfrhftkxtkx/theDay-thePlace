@@ -1,5 +1,5 @@
 <script lang="ts">
-  import OffcanvasTab from '$components/ui/OffcanvasTab/OffcanvasTab.svelte';
+  import OffcanvasTab from '$/components/ui/OffcanvasTab.svelte';
   import { ccbaList, visitKorAreaCode2, searchFilter } from '$/stores/store';
   import type { Category } from '$lib/searchTypes';
   import { Fa } from 'svelte-fa';
@@ -263,7 +263,10 @@
 <!-- CategorySelector.svelte -->
 <!-- 카테고리 선택 버튼 -->
 <div class="category-selector">
-  <button class="select-button" onclick={openOffcavans}>
+  <button
+    class="select-button hover:bg-sky-600 hover:text-white dark:hover:bg-sky-800"
+    onclick={openOffcavans}
+  >
     <span>분류를 선택해주세요</span>
     <Fa icon={faChevronRight} />
   </button>
@@ -489,11 +492,7 @@
   }
 
   .select-button {
-    @apply flex border border-slate-400 py-1 px-4 text-base cursor-pointer rounded-2xl justify-between items-center transition-colors duration-300 w-full h-full;
-  }
-
-  .select-button:hover {
-    @apply bg-sky-600 text-white;
+    @apply flex border border-slate-400 dark:border-slate-500 py-1 px-4 text-base cursor-pointer rounded-2xl justify-between items-center transition-colors duration-300 w-full h-full;
   }
 
   .category-main {
@@ -528,7 +527,7 @@
 
   /* 카테고리 리스트 */
   .category-list {
-    @apply border overflow-y-auto min-h-0;
+    @apply border overflow-y-auto min-h-0 border-gray-500 dark:border-gray-400;
     transition: height 0.5s ease-out;
   }
 
@@ -554,7 +553,7 @@
 
   /* 카테고리 아이템 */
   .category-item {
-    @apply w-full border-b border-gray-300 cursor-pointer text-gray-700;
+    @apply w-full border-b border-gray-300 dark:border-gray-600 cursor-pointer text-gray-700 dark:text-gray-100;
   }
 
   /* 카테고리 아이템 선택 상태 */
@@ -564,26 +563,26 @@
 
   /* 카테고리 아이템 선택 상태 hover 효과 */
   .category-item:hover {
-    @apply bg-gray-100;
+    @apply bg-gray-100 dark:bg-gray-600;
   }
 
   /* 카테고리 아이템 선택 상태 */
   .category-item.selected {
-    @apply bg-sky-500 text-white;
+    @apply bg-sky-500 text-white dark:bg-sky-600 dark:text-gray-100;
   }
 
   .category-item.selected:hover {
-    @apply bg-sky-400;
+    @apply bg-sky-400 dark:bg-sky-500;
   }
 
   /* dock 스타일 */
   .selected-categories-dock {
-    @apply flex fixed flex-col h-22 inset-x-0 bottom-0 m-4 px-4 py-2 border border-gray-300 rounded-xl bg-gray-100 z-1050;
+    @apply flex fixed flex-col h-22 inset-x-0 bottom-0 m-4 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-100 dark:bg-gray-800 z-1050;
   }
 
   /* dock 헤더 */
   .dock-header {
-    @apply flex items-center justify-between pb-2 border-b-3 border-gray-300 w-full h-5;
+    @apply flex items-center justify-between pb-2 border-b-3 border-gray-300 dark:border-gray-600 w-full h-5;
   }
 
   /* 초기화 버튼 섹션 */
@@ -598,7 +597,7 @@
 
   /* 초기화 버튼 */
   .clear-button:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-300 dark:bg-gray-600;
   }
 
   /* 초기화 버튼 텍스트 */
@@ -618,7 +617,7 @@
 
   /* 적용 버튼 hover 효과 */
   .apply-button:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-300 dark:bg-gray-600;
   }
 
   /* dock의 본문 */
@@ -640,12 +639,12 @@
 
   /* 스크롤바 막대의 스타일 */
   .category-tag-area::-webkit-scrollbar-thumb {
-    @apply bg-gray-400 rounded-full border-2 border-transparent bg-clip-content;
+    @apply bg-gray-400 dark:bg-gray-500 rounded-full border-2 border-transparent bg-clip-content;
   }
 
   /* 스크롤바 막대가 마우스 오버될 때의 스타일 */
   .category-tag-area::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500;
+    @apply bg-gray-500 dark:bg-gray-400;
   }
 
   /* dock의 선택된 카테고리 태그 영역 */
@@ -655,21 +654,21 @@
 
   /* 카테고리 태그 아이템 */
   .category-tag-item {
-    @apply px-2 flex items-center h-8 justify-center bg-gray-300 rounded-full text-black shrink-0;
+    @apply px-2 flex items-center h-8 justify-center bg-gray-300 rounded-full text-black shrink-0 dark:bg-gray-600;
   }
 
   /* 카테고리 태그 제거 버튼 */
   .tag-remove-button {
-    @apply bg-transparent text-black cursor-pointer text-base h-5 w-5 rounded-full flex items-center justify-center;
+    @apply bg-transparent text-black cursor-pointer text-base h-5 w-5 rounded-full flex items-center justify-center dark:text-gray-400 transition-colors duration-300 ease-in-out;
   }
 
   /* 카테고리 태그 제거 버튼 hover 효과 */
   .tag-remove-button:hover {
-    @apply bg-gray-400;
+    @apply bg-gray-400 dark:bg-gray-500 text-gray-800 dark:text-gray-200;
   }
 
   /* 카테고리 아이템 이름 */
   .category-item-name {
-    @apply px-1 text-sm text-black cursor-default;
+    @apply px-1 text-sm text-black cursor-default dark:text-white;
   }
 </style>

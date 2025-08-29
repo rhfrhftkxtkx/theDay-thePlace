@@ -20,10 +20,10 @@
 </script>
 
 <button
-  class="rounded-full transition-all duration-300 ease-in-out hover:bg-gray-300 p-3"
+  class="rounded-full transition-colors duration-300 ease-in-out hover:bg-gray-300 p-3 dark:hover:bg-gray-600 focus:outline-none"
   onclick={toggleThemeHandler}
 >
-  <div class="flex items-center justify-center">
+  <div class="flex items-center justify-center w-6 h-6">
     {#if theme === 'dark'}
       <Fa icon={faSun} size="lg" />
     {:else}

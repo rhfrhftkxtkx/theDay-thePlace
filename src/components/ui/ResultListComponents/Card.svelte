@@ -1,50 +1,16 @@
 <script lang="ts">
 </script>
 
-<div class="card">
-  <div class="card-header">
+<div
+  class="flex flex-col border border-gray-300 dark:border-gray-700 rounded-lg p-4 aspect-3/4 h-100 bg-gray-100 dark:bg-gray-800 shadow-md shadow-black/30 dark:shadow-white/10 hover:shadow-lg hover:-translate-y-1 transition-transform duration-200 ease-in-out"
+>
+  <div class="text-lg font-bold mb-2">
     <slot name="header" />
   </div>
-  <div class="card-contents">
+  <div class="flex-grow flex text-base items-center justify-center">
     <slot />
   </div>
-  <div class="card-footer">
+  <div class="mt-auto text-right">
     <slot name="footer" />
   </div>
 </div>
-
-<style>
-  .card {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 16px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease-in-out;
-  }
-
-  .card:hover {
-    transform: translateY(-2px);
-  }
-
-  .card-header {
-    font-size: 1.25rem;
-    font-weight: bold;
-    margin-bottom: 8px;
-  }
-
-  .card-contents {
-    flex-grow: 1;
-    font-size: 1rem;
-    color: #333;
-  }
-
-  .card-footer {
-    margin-top: auto;
-    text-align: right;
-    font-size: 0.875rem;
-    color: #666;
-  }
-</style>
