@@ -489,7 +489,7 @@
   }
 
   .select-button {
-    @apply flex border border-slate-400 py-1 px-2 text-base cursor-pointer rounded-md justify-between items-center transition-colors duration-300 w-full h-full;
+    @apply flex border border-slate-400 py-1 px-4 text-base cursor-pointer rounded-2xl justify-between items-center transition-colors duration-300 w-full h-full;
   }
 
   .select-button:hover {

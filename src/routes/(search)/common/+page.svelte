@@ -71,11 +71,11 @@
   });
 </script>
 
-<div class="search-container">
+<div class="flex justify-center items-center flex-col">
   <!-- 검색 페이지 헤더 -->
-  <header class="search-header">
+  <header class="flex justify-center items-center h-15 text-base font-bold">
     <button
-      class="back-button"
+      class="absolute left-4 cursor-pointer text-xl hover:bg-gray-300 rounded-full px-3 py-2"
       onclick={() => {
         history.back();
       }}
@@ -83,47 +83,47 @@
     >
       <Fa icon={faAngleLeft} />
     </button>
-    <h1>상세 검색</h1>
+    <h1 class="text-2xl">상세 검색</h1>
   </header>
   <!-- 검색 페이지 헤더 -->
   <!-- 검색 페이지 본문 -->
-  <main class="search-main">
+  <main class="flex flex-col h-auto w-full items-center">
     <!-- 검색바 컨테이너 -->
-    <div class="searchbar-container container">
+    <div class="container">
       <!-- 검색바 타이틀 -->
-      <div class="searchbar-title title">
-        <h5>검색어</h5>
+      <div class="inline-flex items-center gap-2 text-xl">
+        <h5 class="text-lg">검색어</h5>
         <Fa icon={faSearch} />
       </div>
       <!-- 검색바 타이틀 -->
       <!-- 검색 바 -->
       <input
         type="text"
-        placeholder="    검색어를 입력하세요"
+        placeholder="검색어를 입력하세요"
         bind:value={keywordString}
         onchange={() => {
           searchKeyword.set(keywordString.trim());
         }}
         disabled={isLoading}
-        class="search-input"
+        class="w-full my-2 border rounded-2xl text-base h-10 px-4 bg-gray-200 focus:outline-none focus:bg-gray-100"
       />
       <!-- 검색 바 -->
     </div>
     <!-- 검색바 컨테이너 -->
     <!-- 카테고리 선택기 컨테이너 -->
-    <div class="category-container container">
-      <div class="category-title title">
-        <h5>카테고리 필터</h5>
+    <div class="container">
+      <div class="inline-flex items-center gap-2 text-xl">
+        <h5 class="text-lg">카테고리 필터</h5>
         <Fa icon={faList} />
       </div>
       <CategorySelector />
     </div>
     <!-- 카테고리 선택기 컨테이너 -->
     <!-- 검색 버튼 컨테이너 -->
-    <div class="submit-container container">
+    <div class="container">
       <button
         type="submit"
-        class="search-button"
+        class="inline-flex items-center text-center justify-center gap-4 w-full h-10 rounded-2xl text-white text-base cursor-pointer transition-color duration-300 ease bg-sky-600 hover:bg-sky-500"
         onclick={handleSubmitClick}
         disabled={isLoading}
       >
@@ -132,7 +132,7 @@
       </button>
     </div>
     <!-- 검색 버튼 컨테이너 -->
-    <hr style="width: 90vw; margin: 2rem 5%;" />
+    <hr style="width: 90%; margin: 2rem 5%;" />
 
     <!-- 검색 결과 컨테이너 -->
     <div class="result-container container">
@@ -143,91 +143,11 @@
   <!-- 검색 페이지 본문 -->
 </div>
 
-<style>
-  .search-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 60px;
-    font-size: 1rem;
-    font-weight: bold;
-  }
+<style lang="postcss">
+  @import 'tailwindcss';
 
-  .back-button {
-    position: absolute;
-    left: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-color);
-    font-size: 1.5rem;
-  }
-
-  .search-header h1 {
-    margin: 0;
-    padding: 0;
-    color: var(--text-color);
-  }
-
-  /*  검색 페이지 스타일 */
-  .search-main {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100%;
-  }
-
-  /* 컨테이너너 스타일 */
+  /* 컨테이너 스타일 */
   .container {
-    display: flex;
-    justify-content: center;
-    align-items: start;
-    flex-direction: column;
-    padding: 0 5%;
-    height: auto;
-  }
-
-  /* 타이틀 스타일 */
-  .title {
-    display: flex;
-    align-items: center;
-    padding: 0;
-    margin: 0;
-    gap: 0.5rem;
-    font-size: 1.5rem;
-    color: var(--text-color);
-  }
-
-  /* 타이틀 텍스트 스타일 */
-  .title h5 {
-    margin: 0;
-    padding: 0;
-    font-size: 1rem;
-  }
-
-  /* 검색바 스타일 */
-  .search-input {
-    width: 100%;
-    padding: 0;
-    margin: 1rem 0;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    font-size: 1rem;
-    width: 100%;
-    height: 40px;
-    background-color: var(--background-color);
-  }
-
-  /* 검색 버튼 스타일 */
-  .search-button {
-    width: 100%;
-    height: 40px;
-    border: none;
-    border-radius: 10px;
-    background-color: var(--primary-color);
-    color: white;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    @apply flex justify-center items-start flex-col h-auto px-10;
   }
 </style>
