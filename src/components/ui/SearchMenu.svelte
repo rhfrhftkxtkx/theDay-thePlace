@@ -60,7 +60,7 @@
     onkeydown={handleEnterKey}
     id="search-input"
     disabled={isLoading}
-    class="w-full my-2 border rounded-2xl text-base h-10 px-4 bg-gray-100 dark:bg-gray-700 focus:outline-none focus:bg-gray-200 dark:focus:bg-gray-500"
+    class="w-full my-2 border rounded-2xl text-base h-10 px-4 bg-neutral-100 dark:bg-neutral-700 focus:outline-none focus:bg-neutral-200 dark:focus:bg-neutral-500"
   />
   <!-- 검색 바 -->
 </div>

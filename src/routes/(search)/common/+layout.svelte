@@ -21,10 +21,10 @@
   }
 
   :root::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-gray-500 rounded-full border-2 border-transparent;
+    @apply bg-neutral-300 dark:bg-neutral-500 rounded-full border-2 border-transparent;
   }
 
   :root::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-gray-600;
+    @apply bg-neutral-400 dark:bg-neutral-600;
   }
 </style>

@@ -106,7 +106,7 @@
   ></div>
 {/if}
 <div
-  class="fixed flex flex-col bottom-0 left-0 right-0 bg-gray-100 dark:bg-gray-700 shadow-[0_-2px_20px_10px] shadow-black/30 overflow-hidden z-1050 rounded-t-xl"
+  class="fixed flex flex-col bottom-0 left-0 right-0 bg-neutral-100 dark:bg-neutral-700 shadow-[0_-2px_20px_10px] shadow-black/30 overflow-hidden z-1050 rounded-t-xl"
   transition:fly={{ y: initialHeight, duration: 300, easing: quadOut }}
   bind:this={offcanvasTabElement}
   style="height: {currentOffcanvasHeight}px;"
@@ -122,17 +122,17 @@
     aria-valuenow={currentOffcanvasHeight}
     tabindex="0"
   >
-    <div class="w-20 h-1 bg-gray-300 rounded-full"></div>
+    <div class="w-20 h-1 bg-neutral-300 rounded-full"></div>
   </div>
   <div
-    class="flex justify-between items-center py-3 px-4 border border-gray-300 dark:border-gray-600"
+    class="flex justify-between items-center py-3 px-4 border border-neutral-300 dark:border-neutral-600"
   >
     <span class="bg-none p-2 text-xl">&nbsp;</span>
     <h3 class="items-center text-xl justify-center text-center font-bold">
       {title}
     </h3>
     <button
-      class="bg-none text-xl p-2 cursor-pointer hover:bg-gray-400 dark:hover:bg-gray-500 rounded-full transition-colors duration-300 ease-in-out"
+      class="bg-none text-xl p-2 cursor-pointer hover:bg-neutral-400 dark:hover:bg-neutral-500 rounded-full transition-colors duration-300 ease-in-out"
       onclick={handleCloseOffcanvas}
       aria-label="Close offcanvas"
     >

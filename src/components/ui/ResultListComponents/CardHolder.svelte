@@ -8,7 +8,7 @@
   <h4 class="text-lg font-semibold">{title}</h4>
   {#if value}
     <a
-      class="bg-transparent cursor-pointer text-base focus:outline-none rounded-full p-2 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 ease-in-out"
+      class="bg-transparent cursor-pointer text-base focus:outline-none rounded-full p-2 hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors duration-200 ease-in-out"
       href={`/common/${value.toLocaleLowerCase()}`}
     >
       {more_title}
@@ -33,10 +33,10 @@
   }
 
   .scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-gray-500 rounded-full border-2 border-transparent;
+    @apply bg-neutral-300 dark:bg-neutral-500 rounded-full border-2 border-transparent;
   }
 
   .scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400;
+    @apply bg-neutral-400;
   }
 </style>

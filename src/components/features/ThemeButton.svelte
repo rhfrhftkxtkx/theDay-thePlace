@@ -20,7 +20,7 @@
 </script>
 
 <button
-  class="rounded-full transition-colors duration-300 ease-in-out hover:bg-gray-300 p-3 dark:hover:bg-gray-600 focus:outline-none"
+  class="rounded-full transition-colors duration-300 ease-in-out hover:bg-neutral-300 p-3 dark:hover:bg-neutral-600 focus:outline-none"
   onclick={toggleThemeHandler}
 >
   <div class="flex items-center justify-center w-6 h-6">
