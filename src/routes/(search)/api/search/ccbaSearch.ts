@@ -7,7 +7,7 @@ import type {
 	CcbaItemResponse,
 	CcbaItemImageResponse,
 	SearchedCcbaItem
-} from '$/lib/searchTypes';
+} from '$/types/search.types';
 
 const CCBA_API_URL: string = 'http://www.khs.go.kr/cha/SearchKindOpenapiList.do';
 const CCBA_IMAGE_API_URL: string = 'https://www.khs.go.kr/cha/SearchImageOpenapi.do';

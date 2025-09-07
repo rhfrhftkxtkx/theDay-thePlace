@@ -88,14 +88,3 @@
 </div>
 <!-- 검색 버튼 컨테이너 -->
 <hr class="w-[90%] my-12 mx-auto" />
-
-<style lang="postcss">
-  @import 'tailwindcss';
-
-  @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
-  /* 컨테이너 스타일 */
-  .container {
-    @apply flex justify-center items-start flex-col h-auto px-10;
-  }
-</style>

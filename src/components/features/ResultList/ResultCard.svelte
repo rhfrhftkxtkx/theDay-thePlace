@@ -1,6 +1,9 @@
 <script lang="ts">
   import Card from '$/components/ui/ResultListComponents/Card.svelte';
-  import type { SearchedCcbaItem, SearchedMuseumItem } from '$lib/searchTypes';
+  import type {
+    SearchedCcbaItem,
+    SearchedMuseumItem,
+  } from '$/types/search.types';
 
   let { ccba, muse }: { ccba?: SearchedCcbaItem; muse?: SearchedMuseumItem } =
     $props();
@@ -100,50 +103,3 @@
     </div>
   {/if} -->
 </Card>
-
-<style>
-  .card-content {
-    display: flex;
-    flex-direction: column;
-    width: 120px;
-    height: 280px;
-  }
-
-  .card-image {
-    width: auto;
-    height: 100px;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    object-fit: contain;
-  }
-
-  .card-header h3 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #333;
-  }
-
-  .card-body p {
-    margin: 0.5rem 0;
-    color: #666;
-  }
-
-  .card-body p:last-child {
-    margin-bottom: 0;
-  }
-
-  .card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .card-header {
-    margin-bottom: 1rem;
-  }
-
-  .card-header h3 {
-    font-size: 1.25rem;
-    color: var(--text-color);
-  }
-</style>

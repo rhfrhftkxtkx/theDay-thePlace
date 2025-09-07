@@ -2,29 +2,9 @@
   import SearchHeader from '$/components/ui/SearchHeader.svelte';
 </script>
 
-<div class="flex justify-center items-center flex-col">
+<div
+  class="min-h-screen bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 transition-colors duration-300"
+>
   <SearchHeader />
-  <div class="w-full mt-20">
-    <slot />
-  </div>
+  <slot />
 </div>
-
-<style lang="postcss">
-  @import 'tailwindcss';
-
-  :root::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  :root::-webkit-scrollbar-track {
-    @apply bg-transparent my-2;
-  }
-
-  :root::-webkit-scrollbar-thumb {
-    @apply bg-neutral-300 dark:bg-neutral-500 rounded-full border-2 border-transparent;
-  }
-
-  :root::-webkit-scrollbar-thumb:hover {
-    @apply bg-neutral-400 dark:bg-neutral-600;
-  }
-</style>

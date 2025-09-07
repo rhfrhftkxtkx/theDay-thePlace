@@ -1,6 +1,6 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import type { Category, ServerResponse } from '$lib/searchTypes';
+import type { Category, ServerResponse } from '$/types/search.types';
 import { ccbaItemSearch } from './ccbaSearch';
 import { museumItemSearch } from './museumSearch';
 

@@ -20,23 +20,3 @@
     <slot />
   </div>
 </div>
-
-<style lang="postcss">
-  @import 'tailwindcss';
-
-  .scrollbar::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  .scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent mx-1;
-  }
-
-  .scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-neutral-300 dark:bg-neutral-500 rounded-full border-2 border-transparent;
-  }
-
-  .scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-neutral-400;
-  }
-</style>

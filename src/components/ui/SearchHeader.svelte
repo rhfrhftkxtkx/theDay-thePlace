@@ -1,25 +1,27 @@
 <script lang="ts">
   import Fa from 'svelte-fa';
-  import { faAngleLeft } from '@fortawesome/free-solid-svg-icons';
+  import { faArrowLeft, faSearch } from '@fortawesome/free-solid-svg-icons';
   import ThemeButton from '../features/ThemeButton.svelte';
 </script>
 
 <!-- 검색 페이지 헤더 -->
 <header
-  class="flex justify-center items-center h-15 text-base font-bold text-black dark:text-white fixed top-0 left-0 right-0 bg-neutral-100 dark:bg-neutral-800 z-10"
+  class="sticky top-0 z-50 bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-300 dark:border-neutral-500 transition-colors duration-300"
 >
-  <button
-    class="absolute left-4 cursor-pointer text-xl hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors duration-300 ease-in-out rounded-full px-4 py-3"
-    onclick={() => {
-      history.back();
-    }}
-    aria-label="뒤로가기"
-  >
-    <Fa icon={faAngleLeft} />
-  </button>
-  <h1 class="text-2xl">상세 검색</h1>
-  <div class="absolute right-4">
-    <ThemeButton />
+  <!-- 이전 버튼 및 제목 -->
+  <div class="flex items-center gap-3 p-4">
+    <button
+      class="p-3 rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-600 focus:outline-none transition-colors duration-200"
+      onclick={() => history.back()}
+    >
+      <!-- Font Awesome icon -->
+      <Fa icon={faArrowLeft} />
+    </button>
+    <h1 class="flex-1">상세검색</h1>
+    <div class="absolute right-4">
+      <!-- 테마 전환 버튼 -->
+      <ThemeButton />
+    </div>
   </div>
 </header>
 <!-- 검색 페이지 헤더 -->
