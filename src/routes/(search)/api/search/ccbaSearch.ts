@@ -7,10 +7,11 @@ import type {
 	CcbaItemResponse,
 	CcbaItemImageResponse,
 	SearchedCcbaItem
-} from '$/lib/searchTypes';
+} from '$/types/search.types';
 
 const CCBA_API_URL: string = 'http://www.khs.go.kr/cha/SearchKindOpenapiList.do';
-const CCBA_IMAGE_API_URL: string = 'http://www.khs.go.kr/cha/SearchImageOpenapi.do';
+const CCBA_IMAGE_API_URL: string = 'https://www.khs.go.kr/cha/SearchImageOpenapi.do';
+const ASNO_LENGTH: number = 13;
 
 // 아이템 목록을 검색하는 함수
 // ccbaFilter는 server.ts에서 국가유산 종목만 필터링된 Category 배열
@@ -122,8 +123,8 @@ function parseXMLToCcbaItemResponse(xml: string): CcbaItemResponse[] {
 	const items: CcbaItemResponse[] = jsonDoc.result.item;
 
 	for (const item of items) {
-		if (item.ccbaAsno.toString().length < 8) {
-			item.ccbaAsno = item.ccbaAsno.toString().padStart(8, '0');
+		if (item.ccbaAsno.toString().length < ASNO_LENGTH) {
+			item.ccbaAsno = item.ccbaAsno.toString().padStart(ASNO_LENGTH, '0');
 		}
 	}
 
@@ -153,8 +154,8 @@ function parseXMLToCcbaItemImageResponse(xml: string): CcbaItemImageResponse {
 	const results: CcbaItemImageResponse = {
 		ccbaKdcd: result.ccbaKdcd || '',
 		ccbaAsno:
-			result.ccbaAsno.toString().length < 8
-				? result.ccbaAsno.toString().padStart(8, '0')
+			result.ccbaAsno.toString().length < ASNO_LENGTH
+				? result.ccbaAsno.toString().padStart(ASNO_LENGTH, '0')
 				: result.ccbaAsno,
 		ccbaCtcd: result.ccbaCtcd || '',
 		ccbaMnm1: result.ccbaMnm1 || '',

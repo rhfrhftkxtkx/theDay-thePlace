@@ -6,7 +6,7 @@ import type {
 	MuseumAPIResponse,
 	MuseumItemResponse,
 	SearchedMuseumItem
-} from '$/lib/searchTypes';
+} from '$/types/search.types';
 
 const API_KEY: string | undefined = env.OPEN_API_KEY;
 const VISITKOREA_API_URL: string = 'https://apis.data.go.kr/B551011/KorService2';

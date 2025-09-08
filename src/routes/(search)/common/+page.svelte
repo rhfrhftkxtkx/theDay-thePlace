@@ -1,23 +1,18 @@
 <script lang="ts">
-  import Fa from 'svelte-fa';
-  import CategorySelector from '$components/features/CategorySeletor/CategorySelector.svelte';
-  import ResultList from '$components/features/ResultList/ResultList.svelte';
+  // import SearchMenu from '$/components/ui/SearchMenu.svelte';
   import {
-    faSearch,
-    faList,
-    faAngleLeft,
-  } from '@fortawesome/free-solid-svg-icons';
-  import {
+    ccbaList,
     searchFilter,
     searchKeyword,
     searchedCcbaItems,
     searchedMuseumItems,
+    visitKorAreaCode2,
   } from '$/stores/store';
-  import type { ServerResponse } from '$lib/searchTypes';
-  import { onMount } from 'svelte';
-
-  // 검색어를 저장하는 상태 변수
-  let keywordString: string = $state('');
+  import type { ServerResponse } from '$/types/search.types';
+  import ResultList from '$/components/ResultList.svelte';
+  import { Fa } from 'svelte-fa';
+  import { faSearch } from '@fortawesome/free-solid-svg-icons';
+  import CategorySelector from '$/components/CategorySelector.svelte';
 
   // 로딩 상태 저장
   let isLoading: boolean = $state(false);
@@ -62,172 +57,52 @@
     }
   }
 
-  onMount(async () => {
-    if ($searchedCcbaItems.length == 0 && $searchedMuseumItems.length == 0) {
-      // 페이지가 처음 로드될 때 검색어가 비어있으면 기본 검색어로 검색
-      keywordString = '';
-      await handleSubmitClick();
-    }
+  async function setDefaultLists(): Promise<void> {
+    ccbaList.set(await fetch('/api/khs/categories').then((res) => res.json()));
+    visitKorAreaCode2.set(
+      await fetch('/api/visitKor/areaCode').then((res) => res.json())
+    );
+  }
+
+  $effect(() => {
+    setDefaultLists();
+    handleSubmitClick();
   });
 </script>
 
-<div class="search-container">
-  <!-- 검색 페이지 헤더 -->
-  <header class="search-header">
-    <button
-      class="back-button"
-      onclick={() => {
-        history.back();
-      }}
-      aria-label="뒤로가기"
-    >
-      <Fa icon={faAngleLeft} />
-    </button>
-    <h1>상세 검색</h1>
-  </header>
-  <!-- 검색 페이지 헤더 -->
-  <!-- 검색 페이지 본문 -->
-  <main class="search-main">
-    <!-- 검색바 컨테이너 -->
-    <div class="searchbar-container container">
-      <!-- 검색바 타이틀 -->
-      <div class="searchbar-title title">
-        <h5>검색어</h5>
-        <Fa icon={faSearch} />
+<main class="p-4 my-6">
+  <!-- Search Bar -->
+  <div class="my-3">
+    <div class="flex gap-2">
+      <div class="relative flex-1">
+        <Fa
+          icon={faSearch}
+          class="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500"
+        />
+        <input
+          type="text"
+          placeholder="박물관, 기념관, 전시관 검색..."
+          class="w-full pl-10 pr-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-500 bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-3 focus:ring-neutral-300 dark:focus:ring-neutral-500 transition-all duration-200"
+        />
       </div>
-      <!-- 검색바 타이틀 -->
-      <!-- 검색 바 -->
-      <input
-        type="text"
-        placeholder="    검색어를 입력하세요"
-        bind:value={keywordString}
-        onchange={() => {
-          searchKeyword.set(keywordString.trim());
-        }}
-        disabled={isLoading}
-        class="search-input"
-      />
-      <!-- 검색 바 -->
-    </div>
-    <!-- 검색바 컨테이너 -->
-    <!-- 카테고리 선택기 컨테이너 -->
-    <div class="category-container container">
-      <div class="category-title title">
-        <h5>카테고리 필터</h5>
-        <Fa icon={faList} />
-      </div>
-      <CategorySelector />
-    </div>
-    <!-- 카테고리 선택기 컨테이너 -->
-    <!-- 검색 버튼 컨테이너 -->
-    <div class="submit-container container">
       <button
-        type="submit"
-        class="search-button"
+        class="px-6 py-2 bg-neutral-800 text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-600 dark:bg-neutral-200 dark:hover:bg-neutral-400 transition-colors duration-200"
         onclick={handleSubmitClick}
-        disabled={isLoading}
       >
         검색
-        <Fa icon={faSearch} />
       </button>
     </div>
-    <!-- 검색 버튼 컨테이너 -->
-    <hr style="width: 90vw; margin: 2rem 5%;" />
+  </div>
 
-    <!-- 검색 결과 컨테이너 -->
-    <div class="result-container container">
-      <ResultList {isLoading} />
-    </div>
-    <!-- 검색 결과 컨테이너 -->
-  </main>
-  <!-- 검색 페이지 본문 -->
-</div>
+  <!-- Search Menu -->
+  <CategorySelector />
+  <!-- <SearchMenu isLoading={true} handleSubmitClick={async () => {}} /> -->
 
-<style>
-  .search-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 60px;
-    font-size: 1rem;
-    font-weight: bold;
-  }
-
-  .back-button {
-    position: absolute;
-    left: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-color);
-    font-size: 1.5rem;
-  }
-
-  .search-header h1 {
-    margin: 0;
-    padding: 0;
-    color: var(--text-color);
-  }
-
-  /*  검색 페이지 스타일 */
-  .search-main {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100%;
-  }
-
-  /* 컨테이너너 스타일 */
-  .container {
-    display: flex;
-    justify-content: center;
-    align-items: start;
-    flex-direction: column;
-    padding: 0 5%;
-    height: auto;
-  }
-
-  /* 타이틀 스타일 */
-  .title {
-    display: flex;
-    align-items: center;
-    padding: 0;
-    margin: 0;
-    gap: 0.5rem;
-    font-size: 1.5rem;
-    color: var(--text-color);
-  }
-
-  /* 타이틀 텍스트 스타일 */
-  .title h5 {
-    margin: 0;
-    padding: 0;
-    font-size: 1rem;
-  }
-
-  /* 검색바 스타일 */
-  .search-input {
-    width: 100%;
-    padding: 0;
-    margin: 1rem 0;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    font-size: 1rem;
-    width: 100%;
-    height: 40px;
-    background-color: var(--background-color);
-  }
-
-  /* 검색 버튼 스타일 */
-  .search-button {
-    width: 100%;
-    height: 40px;
-    border: none;
-    border-radius: 10px;
-    background-color: var(--primary-color);
-    color: white;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-</style>
+  <!-- 검색 결과 컨테이너 -->
+  <div
+    class="my-4 border-t border-neutral-300 dark:border-neutral-600 pt-4 transition-all duration-300"
+  >
+    <ResultList {isLoading} />
+  </div>
+  <!-- 검색 결과 컨테이너 -->
+</main>

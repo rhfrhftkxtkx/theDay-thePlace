@@ -6,7 +6,7 @@
   import { slide } from 'svelte/transition'; // 애니메이션
 
   import type { PageData, ApiLocationData } from './+page';
-  import OffcanvasTab from '$/components/ui/OffcanvasTab/OffcanvasTab.svelte';
+  import OffcanvasTab from '$/components/ui/OffcanvasTab.svelte';
   import { browser } from '$app/environment';
 
   // Props
@@ -192,7 +192,7 @@
                   default:
                     typeName = '장소';
                 }
-                const iwContent = `<div style="padding:5px;font-size:12px;text-align:center;min-width:120px;"><strong>${loc.title}</strong><br><span style="font-size:10px;color:gray;">(${typeName})</span></div>`;
+                const iwContent = `<div style="padding:5px;font-size:12px;text-align:center;min-width:120px;"><strong>${loc.title}</strong><br><span style="font-size:10px;color:neutral;">(${typeName})</span></div>`;
                 const infowindow = new window.kakao.maps.InfoWindow({
                   content: iwContent,
                 });
