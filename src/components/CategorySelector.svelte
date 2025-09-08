@@ -34,7 +34,7 @@
       {
         code: 'ccba',
         name: '문화유산',
-        item: ccbaList,
+        item: $ccbaList,
       },
       {
         code: 'museum',
@@ -43,17 +43,40 @@
           {
             code: 'areaCode',
             name: '지역',
-            item: visitKorAreaCode2,
+            item: $visitKorAreaCode2,
           },
         ],
       },
     ];
   }
 
+  function resetSelections(): void {
+    // 선택된 카테고리들을 초기화하는 함수
+    selectedCat1 = undefined;
+    selectedCat2 = undefined;
+    selectedCat3 = undefined;
+    selectedCategory = undefined;
+    cat2List = [];
+    cat3List = [];
+    searchFilter.set([
+      {
+        code: 'ccba',
+        name: '문화유산',
+        item: [],
+      },
+      {
+        code: 'museum',
+        name: '박물관',
+        item: [],
+      },
+    ]);
+  }
+
   onMount(() => {
     // 컴포넌트가 마운트될 때 실행되는 함수
     mounted = true;
     setDefaultCategoryList();
+    resetSelections();
   });
 </script>
 
@@ -71,8 +94,8 @@
     <Fa icon={faChevronDown} />
   {/if}
 </Button>
-<!-- 카테고리 선택 영역 -->
-{#if isSelectorOpen}
+{#if isSelectorOpen && mounted}
+  <!-- 카테고리 선택 영역 -->
   <div class="my-4 w-full" transition:slide>
     <div class="my-3">
       <div>
@@ -242,6 +265,16 @@
           </Select.Content>
         </Select.Root>
       </div>
+      <Button
+        variant="outline"
+        class="w-full justify-center border border-neutral-400 bg-neutral-50 text-black dark:bg-neutral-800 dark:border-neutral-500 rounded-lg px-4 py-2 mt-4 hover:bg-neutral-200 hover:text-black dark:hover:bg-neutral-700 transition-colors duration-300"
+        onclick={() => {
+          // 선택 초기화 버튼 클릭 시 모든 선택 초기화
+          resetSelections();
+        }}
+      >
+        선택 초기화
+      </Button>
     </div>
   </div>
 {/if}

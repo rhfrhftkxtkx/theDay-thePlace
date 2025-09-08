@@ -1,16 +1,18 @@
 <script lang="ts">
-  import SearchMenu from '$/components/ui/SearchMenu.svelte';
+  // import SearchMenu from '$/components/ui/SearchMenu.svelte';
   import {
+    ccbaList,
     searchFilter,
     searchKeyword,
     searchedCcbaItems,
     searchedMuseumItems,
+    visitKorAreaCode2,
   } from '$/stores/store';
   import type { ServerResponse } from '$/types/search.types';
-  import ResultList from '$/components/features/ResultList/ResultList.svelte';
+  import ResultList from '$/components/ResultList.svelte';
   import { Fa } from 'svelte-fa';
   import { faSearch } from '@fortawesome/free-solid-svg-icons';
-  import CategorySelector from '$/components/features/CategorySeletor/CategorySelector.svelte';
+  import CategorySelector from '$/components/CategorySelector.svelte';
 
   // 로딩 상태 저장
   let isLoading: boolean = $state(false);
@@ -55,7 +57,15 @@
     }
   }
 
+  async function setDefaultLists(): Promise<void> {
+    ccbaList.set(await fetch('/api/khs/categories').then((res) => res.json()));
+    visitKorAreaCode2.set(
+      await fetch('/api/visitKor/areaCode').then((res) => res.json())
+    );
+  }
+
   $effect(() => {
+    setDefaultLists();
     handleSubmitClick();
   });
 </script>
@@ -89,7 +99,9 @@
   <!-- <SearchMenu isLoading={true} handleSubmitClick={async () => {}} /> -->
 
   <!-- 검색 결과 컨테이너 -->
-  <div class="my-4">
+  <div
+    class="my-4 border-t border-neutral-300 dark:border-neutral-600 pt-4 transition-all duration-300"
+  >
     <ResultList {isLoading} />
   </div>
   <!-- 검색 결과 컨테이너 -->

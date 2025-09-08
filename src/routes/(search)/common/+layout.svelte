@@ -1,5 +1,5 @@
 <script lang="ts">
-  import SearchHeader from '$/components/ui/SearchHeader.svelte';
+  import SearchHeader from '$/components/SearchHeader.svelte';
 </script>
 
 <div

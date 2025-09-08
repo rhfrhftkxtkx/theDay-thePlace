@@ -1,6 +1,6 @@
 <script lang="ts">
   import Fa from 'svelte-fa';
-  import CategorySelector from '$components/features/CategorySeletor/CategorySelector.svelte';
+  import CategorySelector from '$/components/CategorySelector.svelte';
   import { faSearch, faList } from '@fortawesome/free-solid-svg-icons';
   import {
     searchKeyword,

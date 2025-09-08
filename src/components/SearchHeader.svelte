@@ -1,7 +1,7 @@
 <script lang="ts">
   import Fa from 'svelte-fa';
-  import { faArrowLeft, faSearch } from '@fortawesome/free-solid-svg-icons';
-  import ThemeButton from '../features/ThemeButton.svelte';
+  import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+  import ThemeButton from './ThemeButton.svelte';
 </script>
 
 <!-- 검색 페이지 헤더 -->
