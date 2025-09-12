@@ -22,10 +22,19 @@
   const imageUrl = type === 'ccba' ? ccba?.imageUrl : museum?.firstimage;
   const imageAlt = type === 'ccba' ? ccba?.ccimDesc : museum?.title;
   const title = type === 'ccba' ? ccba?.ccbaMnm1 : museum?.title;
+
+  function handleClick() {
+    if (type === 'ccba' && ccba) {
+      window.location.href = `/ccba?ccbaAsno=${ccba.ccbaAsno}&ccbaCtcd=${ccba.ccbaCtcd}&ccbaKdcd=${ccba.ccbaKdcd}`;
+    } else if (type === 'museum' && museum) {
+      // Navigate to museum detail page
+    }
+  }
 </script>
 
 <Card
   class="cursor-pointer hover:shadow-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-shadow duration-200"
+  onclick={handleClick}
 >
   <CardContent class="p-4">
     <div class="flex gap-3">
