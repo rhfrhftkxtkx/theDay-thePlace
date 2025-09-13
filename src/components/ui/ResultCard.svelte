@@ -6,6 +6,7 @@
     SearchedCcbaItem,
     SearchedMuseumItem,
   } from '$/types/search.types';
+  import FallbackImage from './FallbackImage.svelte';
 
   interface Props {
     ccba?: SearchedCcbaItem;
@@ -21,29 +22,24 @@
   const imageUrl = type === 'ccba' ? ccba?.imageUrl : museum?.firstimage;
   const imageAlt = type === 'ccba' ? ccba?.ccimDesc : museum?.title;
   const title = type === 'ccba' ? ccba?.ccbaMnm1 : museum?.title;
+
+  function handleClick() {
+    if (type === 'ccba' && ccba) {
+      window.location.href = `/ccba?ccbaAsno=${ccba.ccbaAsno}&ccbaCtcd=${ccba.ccbaCtcd}&ccbaKdcd=${ccba.ccbaKdcd}`;
+    } else if (type === 'museum' && museum) {
+      // Navigate to museum detail page
+    }
+  }
 </script>
 
 <Card
   class="cursor-pointer hover:shadow-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-shadow duration-200"
+  onclick={handleClick}
 >
   <CardContent class="p-4">
     <div class="flex gap-3">
       <div class="w-20 h-20 rounded-lg overflow-hidden shrink-0">
-        {#if imageUrl}
-          <img
-            src={imageUrl}
-            alt={imageAlt}
-            class="w-full h-full object-cover"
-          />
-        {:else}
-          <div
-            class="inline-block bg-neutral-200 text-center align-middle w-full h-full object-cover"
-          >
-            <span class="flex items-center justify-center w-full h-full">
-              <img src={ERROR_IMG_URL} alt="Error" />
-            </span>
-          </div>
-        {/if}
+        <FallbackImage {imageUrl} {imageAlt} />
       </div>
       <div class="flex-1 min-w-0">
         <div class="flex items-start justify-between mb-2">
