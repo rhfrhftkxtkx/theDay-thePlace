@@ -13,32 +13,71 @@
   } from '$/types/detail.types';
   import type { PageData } from './$types';
   import type { CarouselAPI } from '$/lib/components/ui/carousel/context';
+  import { onMount } from 'svelte';
 
+  // page loaded data
   let { data }: { data: PageData } = $props();
-  const ccba: ccbaDtApiResponse | null = data.ccba;
-  const images: ccbaImageApiItem[] | null = data.imgs;
-  const badges: string[] = [
+  // ccba data
+  const ccba: ccbaDtApiResponse | null = $derived(data.ccba);
+  const images: ccbaImageApiItem[] | null = $derived(data.imgs);
+  const badges: string[] = $derived([
     ccba!.item.bcodeName,
     ccba!.item.ccbaPoss,
     ccba!.item.gcodeName,
     ccba!.item.mcodeName,
     ccba!.item.scodeName,
-  ];
+  ]);
 
-  let api = $state<CarouselAPI>();
-
-  const count = $derived(api ? api.scrollSnapList().length : 0);
+  // carousel api
+  let carouselApi = $state<CarouselAPI>();
   let current = $state(0);
+  const count = $derived(carouselApi?.scrollSnapList().length || 0);
+
+  // 현재 shadcn/ui Carousel 컴포넌트가 탭 변경 시 Embla가 재렌더링되지 않는 문제가 있어
+  // 탭 변경 시 key를 변경하여 강제 재렌더링 처리
+  // 탭 변경을 감지하고, key를 변경하기 위해 tabValue 상태를 추가함.
+  let tabValue = $state('overview');
+
+  // kakao maps
+  // map container
+  let mapContainer: HTMLDivElement | null = $state(null);
+  // map instance
+  let map = $state(null);
+  // map marker
+  let mapMarker = $state(null);
 
   $effect(() => {
     // console.log(ccba);
-    if (api) {
-      current = api.selectedScrollSnap() + 1;
-      api.on('select', () => {
-        current = api!.selectedScrollSnap() + 1;
+    // carousel api initialization
+    if (carouselApi) {
+      current = carouselApi.selectedScrollSnap() + 1;
+      carouselApi.on('select', () => {
+        current = carouselApi!.selectedScrollSnap() + 1;
       });
     }
   });
+
+  onMount(() => {
+    // kakao maps initialization
+    if (mapContainer && ccba && window.kakao && window.kakao.maps) {
+      const pos = new window.kakao.maps.LatLng(ccba.latitude, ccba.longitude);
+
+      const options = {
+        center: pos,
+        level: 3,
+      };
+
+      map = new window.kakao.maps.Map(mapContainer, options);
+      mapMarker = new window.kakao.maps.Marker({
+        position: pos,
+        map: map,
+      });
+    }
+  });
+
+  function tabActivateChange(value: string) {
+    tabValue = value;
+  }
 </script>
 
 {#if ccba === null}
@@ -113,9 +152,13 @@
       </div>
     </div>
 
-    <Tabs.Root value="overview" class="w-full">
+    <Tabs.Root
+      value="overview"
+      class="w-full"
+      onValueChange={tabActivateChange}
+    >
       <Tabs.List
-        class="grid w-full grid-cols-3 bg-neutral-300 dark:bg-neutral-900 px-1 py-1/2 rounded-full"
+        class="grid w-full grid-cols-2 bg-neutral-300 dark:bg-neutral-900 px-1 py-1/2 rounded-full"
       >
         <Tabs.Trigger value="overview" class="rounded-full">
           기본 정보
@@ -136,7 +179,17 @@
             />
 
             <div class="grid grid-cols-1 gap-4 text-sm">
-              <div></div>
+              <div>
+                <h4>위치</h4>
+                <div
+                  class="rounded-lg bg-secondary/10 h-96 border border-border shadow-md"
+                >
+                  <div
+                    bind:this={mapContainer}
+                    class="w-full h-full rounded-lg"
+                  ></div>
+                </div>
+              </div>
             </div>
           </Card.Content>
         </Card.Root>
@@ -149,47 +202,51 @@
           <Card.Content
             class="mb-4 flex flex-col items-center justify-center px-15"
           >
-            <Carousel.Root
-              orientation="horizontal"
-              class="w-full h-full"
-              setApi={(emblaApi) => (api = emblaApi)}
-              plugins={[]}
-              opts={{
-                loop: false,
-                align: 'center',
-              }}
-            >
-              <Carousel.Content class="">
-                {#if images && images.length > 0}
-                  {#each images as img (img.imageUrl)}
-                    <Carousel.Item class="md:basis-1/2 lg:basis-1/3 p-2">
-                      <Card.Root class="h-full">
-                        <Card.Content
-                          class="flex aspect-square items-center justify-center p-6 flex-col"
-                        >
-                          <img
-                            src={img.imageUrl}
-                            alt={img.ccimDesc}
-                            class="max-h-full max-w-full object-contain"
-                          />
-                          {#if img.ccimDesc}
-                            <div
-                              class="mt-2 text-sm text-center text-muted-foreground"
-                            >
-                              {img.ccimDesc}
-                            </div>
-                          {/if}
-                        </Card.Content>
-                      </Card.Root>
-                    </Carousel.Item>
-                  {/each}
-                {:else}
-                  <div class="p-4">No images available.</div>
-                {/if}
-              </Carousel.Content>
-              <Carousel.Previous />
-              <Carousel.Next />
-            </Carousel.Root>
+            <!-- 현재 Sadcn/ui Carousel 컴포넌트가 탭 변경 시 Embla가 재렌더링되지 않는 문제가 있어
+              탭 변경 시 key를 변경하여 강제 재렌더링 처리 -->
+            {#key tabValue}
+              <Carousel.Root
+                orientation="horizontal"
+                class="w-full h-full"
+                setApi={(emblaApi) => (carouselApi = emblaApi)}
+                plugins={[]}
+                opts={{
+                  loop: false,
+                  align: 'center',
+                }}
+              >
+                <Carousel.Content class="">
+                  {#if images && images.length > 0}
+                    {#each images as img (img.imageUrl)}
+                      <Carousel.Item class="md:basis-1/2 lg:basis-1/3 p-2">
+                        <Card.Root class="h-full">
+                          <Card.Content
+                            class="flex aspect-square items-center justify-center p-6 flex-col"
+                          >
+                            <img
+                              src={img.imageUrl}
+                              alt={img.ccimDesc}
+                              class="max-h-full max-w-full object-contain"
+                            />
+                            {#if img.ccimDesc}
+                              <div
+                                class="mt-2 text-sm text-center text-muted-foreground"
+                              >
+                                {img.ccimDesc}
+                              </div>
+                            {/if}
+                          </Card.Content>
+                        </Card.Root>
+                      </Carousel.Item>
+                    {/each}
+                  {:else}
+                    <div class="p-4">No images available.</div>
+                  {/if}
+                </Carousel.Content>
+                <Carousel.Previous />
+                <Carousel.Next />
+              </Carousel.Root>
+            {/key}
             <div class="mt-2 text-sm text-muted-foreground md:hidden">
               {current} / {count}
             </div>
