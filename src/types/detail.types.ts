@@ -1,4 +1,4 @@
-export type ccbaDtApiResponse = {
+export interface ccbaDtApiResponse {
 	ccbaKdcd: string;
 	ccbaAsno: string;
 	ccbaCtcd: string;
@@ -26,4 +26,28 @@ export type ccbaDtApiResponse = {
 		imageUrl: string;
 		content: string;
 	};
-};
+}
+
+export interface ccbaImageApiParsedItem {
+	sn: number[];
+	imageNuri: string[];
+	imageUrl: string[];
+	ccimDesc: string[];
+}
+
+export interface ccbaImageApiItem {
+	sn: number;
+	imageNuri: string;
+	imageUrl: string;
+	ccimDesc: string;
+}
+
+export interface ccbaImageApiResponse {
+	totalCnt: number;
+	ccbaKdcd: number;
+	ccbaAsno: string;
+	ccbaCtcd: number;
+	ccbaMnm1: string;
+	ccbaMnm2: string;
+	item: ccbaImageApiItem[];
+}
