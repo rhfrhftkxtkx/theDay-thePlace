@@ -63,27 +63,18 @@ const parseImageXml = (xmlString: string): ccbaImageApiResponse => {
 	const itemRes: ccbaImageApiParsedItem = jsonDoc.result.item;
 	const items: ccbaImageApiItem[] = [];
 
-	// 만약 sn이 배열이 아니라 단일 객체라면, 이를 배열로 변환
-	if (
-		!Array.isArray(itemRes.sn) &&
-		!Array.isArray(itemRes.imageNuri) &&
-		!Array.isArray(itemRes.imageUrl) &&
-		!Array.isArray(itemRes.ccimDesc)
-	) {
+	// 각 필드를 독립적으로 배열로 변환하여 정규화
+	const snArr = Array.isArray(itemRes.sn) ? itemRes.sn : [itemRes.sn];
+	const imageNuriArr = Array.isArray(itemRes.imageNuri) ? itemRes.imageNuri : [itemRes.imageNuri];
+	const imageUrlArr = Array.isArray(itemRes.imageUrl) ? itemRes.imageUrl : [itemRes.imageUrl];
+	const ccimDescArr = Array.isArray(itemRes.ccimDesc) ? itemRes.ccimDesc : [itemRes.ccimDesc];
+
+	for (let i = 0; i < snArr.length; i++) {
 		items.push({
-			sn: itemRes.sn,
-			imageNuri: itemRes.imageNuri,
-			imageUrl: itemRes.imageUrl,
-			ccimDesc: itemRes.ccimDesc
-		});
-	} else {
-		itemRes.sn.forEach((sn: number, index: number) => {
-			items.push({
-				sn: sn,
-				imageNuri: itemRes.imageNuri[index],
-				imageUrl: itemRes.imageUrl[index],
-				ccimDesc: itemRes.ccimDesc[index]
-			});
+			sn: snArr[i],
+			imageNuri: imageNuriArr[i],
+			imageUrl: imageUrlArr[i],
+			ccimDesc: ccimDescArr[i]
 		});
 	}
 
