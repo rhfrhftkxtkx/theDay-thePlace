@@ -151,28 +151,15 @@ function parseXMLToCcbaItemImageResponse(xml: string): CcbaItemImageResponse {
 		};
 	}
 
-	let resSn = result.item.sn;
-	let resImageNuri = result.item.imageNuri;
-	let resImageUrl = result.item.imageUrl;
-	let resCcimDesc = result.item.ccimDesc;
-
-	// 만약 sn이 배열이 아니라 단일 객체라면, 이를 배열로 변환
-	if (!Array.isArray(resSn)) {
-		resSn = [resSn];
+	// Helper to normalize a value to an array
+	function toArray<T>(value: T | T[]): T[] {
+		return Array.isArray(value) ? value : [value];
 	}
 
-	if (!Array.isArray(resImageNuri)) {
-		resImageNuri = [resImageNuri];
-	}
-
-	if (!Array.isArray(resImageUrl)) {
-		resImageUrl = [resImageUrl];
-	}
-
-	if (!Array.isArray(resCcimDesc)) {
-		resCcimDesc = [resCcimDesc];
-	}
-
+	let resSn = toArray(result.item.sn);
+	let resImageNuri = toArray(result.item.imageNuri);
+	let resImageUrl = toArray(result.item.imageUrl);
+	let resCcimDesc = toArray(result.item.ccimDesc);
 	const results: CcbaItemImageResponse = {
 		ccbaKdcd: result.ccbaKdcd || '',
 		ccbaAsno:
