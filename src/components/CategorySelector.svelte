@@ -97,7 +97,7 @@
     ]);
   }
 
-  afterNavigate(() => {
+  onMount(() => {
     // 컴포넌트가 마운트될 때 실행되는 함수
     mounted = true;
     // setDefaultCategoryList();
