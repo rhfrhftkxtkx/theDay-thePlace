@@ -13,6 +13,7 @@
   import { Fa } from 'svelte-fa';
   import { faSearch } from '@fortawesome/free-solid-svg-icons';
   import CategorySelector from '$/components/CategorySelector.svelte';
+  import { onMount } from 'svelte';
 
   // 로딩 상태 저장
   let isLoading: boolean = $state(false);
@@ -64,7 +65,13 @@
     );
   }
 
-  $effect(() => {
+  function handleKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      handleSubmitClick();
+    }
+  }
+
+  onMount(() => {
     setDefaultLists();
     handleSubmitClick();
   });
@@ -82,6 +89,8 @@
         <input
           type="text"
           placeholder="박물관, 기념관, 전시관 검색..."
+          bind:value={$searchKeyword}
+          onkeydown={handleKeydown}
           class="w-full pl-10 pr-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-500 bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-3 focus:ring-neutral-300 dark:focus:ring-neutral-500 transition-all duration-200"
         />
       </div>

@@ -14,7 +14,7 @@ const VISITKOREA_API_URL: string = 'https://apis.data.go.kr/B551011/KorService2'
 // 아이템 목록을 검색하는 함수
 // museumFilter server.ts에서 국가유산 종목만 필터링된 Category 배열
 export async function museumItemSearch(
-	museumFilter: Category,
+	museumFilter: Category | undefined,
 	Keyword: string,
 	pageNo: number
 ): Promise<SearchedMuseumItem[]> {
