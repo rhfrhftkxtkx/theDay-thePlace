@@ -63,14 +63,29 @@ const parseImageXml = (xmlString: string): ccbaImageApiResponse => {
 	const itemRes: ccbaImageApiParsedItem = jsonDoc.result.item;
 	const items: ccbaImageApiItem[] = [];
 
-	itemRes.sn.forEach((sn: number, index: number) => {
+	// 만약 sn이 배열이 아니라 단일 객체라면, 이를 배열로 변환
+	if (
+		!Array.isArray(itemRes.sn) &&
+		!Array.isArray(itemRes.imageNuri) &&
+		!Array.isArray(itemRes.imageUrl) &&
+		!Array.isArray(itemRes.ccimDesc)
+	) {
 		items.push({
-			sn: sn,
-			imageNuri: itemRes.imageNuri[index],
-			imageUrl: itemRes.imageUrl[index],
-			ccimDesc: itemRes.ccimDesc[index]
+			sn: itemRes.sn,
+			imageNuri: itemRes.imageNuri,
+			imageUrl: itemRes.imageUrl,
+			ccimDesc: itemRes.ccimDesc
 		});
-	});
+	} else {
+		itemRes.sn.forEach((sn: number, index: number) => {
+			items.push({
+				sn: sn,
+				imageNuri: itemRes.imageNuri[index],
+				imageUrl: itemRes.imageUrl[index],
+				ccimDesc: itemRes.ccimDesc[index]
+			});
+		});
+	}
 
 	const obj: ccbaImageApiResponse = {
 		totalCnt: result.totalCnt,

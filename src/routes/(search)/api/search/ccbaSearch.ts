@@ -151,6 +151,28 @@ function parseXMLToCcbaItemImageResponse(xml: string): CcbaItemImageResponse {
 		};
 	}
 
+	let resSn = result.item.sn;
+	let resImageNuri = result.item.imageNuri;
+	let resImageUrl = result.item.imageUrl;
+	let resCcimDesc = result.item.ccimDesc;
+
+	// 만약 sn이 배열이 아니라 단일 객체라면, 이를 배열로 변환
+	if (!Array.isArray(resSn)) {
+		resSn = [resSn];
+	}
+
+	if (!Array.isArray(resImageNuri)) {
+		resImageNuri = [resImageNuri];
+	}
+
+	if (!Array.isArray(resImageUrl)) {
+		resImageUrl = [resImageUrl];
+	}
+
+	if (!Array.isArray(resCcimDesc)) {
+		resCcimDesc = [resCcimDesc];
+	}
+
 	const results: CcbaItemImageResponse = {
 		ccbaKdcd: result.ccbaKdcd || '',
 		ccbaAsno:
@@ -160,10 +182,10 @@ function parseXMLToCcbaItemImageResponse(xml: string): CcbaItemImageResponse {
 		ccbaCtcd: result.ccbaCtcd || '',
 		ccbaMnm1: result.ccbaMnm1 || '',
 		ccbaMnm2: result.ccbaMnm2 || '',
-		sn: result.item.sn[0] || 0,
-		imageNuri: result.item.imageNuri[0] || '',
-		imageUrl: result.item.imageUrl[0] || '',
-		ccimDesc: result.item.ccimDesc[0] || ''
+		sn: resSn[0] || 0,
+		imageNuri: resImageNuri[0] || '',
+		imageUrl: resImageUrl[0] || '',
+		ccimDesc: resCcimDesc[0] || ''
 	};
 
 	return results;
