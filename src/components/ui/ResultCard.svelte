@@ -27,7 +27,7 @@
     if (type === 'ccba' && ccba) {
       window.location.href = `/ccba?ccbaAsno=${ccba.ccbaAsno}&ccbaCtcd=${ccba.ccbaCtcd}&ccbaKdcd=${ccba.ccbaKdcd}`;
     } else if (type === 'museum' && museum) {
-      // Navigate to museum detail page
+      window.location.href = `/museum?contentId=${museum.contentid}`;
     }
   }
 </script>

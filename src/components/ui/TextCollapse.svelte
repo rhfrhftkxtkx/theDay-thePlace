@@ -32,7 +32,7 @@
   }
 </script>
 
-<div class="relative">
+<div class="relative mb-4">
   <div
     class="overflow-hidden transition-all duration-400 relative"
     bind:this={textContainer}
