@@ -5,12 +5,22 @@
   // onMount에서 등록했던 이벤트 리스너 등을 여기서 정리(제거)하여 메모리 누수를 방지
   import { slide } from 'svelte/transition'; // 애니메이션
 
-  import type { PageData, ApiLocationData } from './+page';
+  import type { PageData, LocationData } from '$lib/mapTypes'; 
   import OffcanvasTab from '$/components/ui/OffcanvasTab/OffcanvasTab.svelte';
   import { browser } from '$app/environment';
 
   // Props
   export let data: PageData;
+  // ▼▼▼ 이 코드를 추가해서 받은 데이터의 내용물을 직접 확인해 보세요! ▼▼▼
+	console.log('--- 최종 확인 ---');
+	console.log('페이지가 받은 전체 데이터:', data);
+	if (data.locations && data.locations.length > 0) {
+		console.log('첫 번째 데이터 항목:', data.locations[0]);
+	} else {
+        console.log('locations 배열이 비어있거나 없습니다.');
+    }
+	console.log('-----------------');
+	// ▲▲▲ 여기까지 추가 ▲▲▲
 
   // 초기 위치 국립중앙박물관 기준
   const NATIONAL_MUSEUM_OF_KOREA_LAT = 37.5238506;
@@ -20,7 +30,7 @@
   let mapContainer: HTMLDivElement; // 지도가 그려질 div를 가르키는 변수
   let map: any; // 실제 지도 객체를 저장할 변수
   let currentDbMarkers: Array<{
-    locationData: ApiLocationData;
+    locationData: LocationData;
     marker: any;
     infowindow: any;
   }> = [];
@@ -28,18 +38,18 @@
   let mapClickListener: any = null; // 지도 클릭 이벤트 관련 정보 저장
 
   // 하단 상세정보 시트 관련 변수
-  let selectedLocation: ApiLocationData | null = null; // 사용자가 선택한 장소의 상세정보 저장
+  let selectedLocation: LocationData | null = null; // 사용자가 선택한 장소의 상세정보 저장
   let isBottomSheetOpen = false; // 하단 상세정보 시트 Open 여부
 
   // 검색 기능 관련 변수
   let searchQuery: string = ''; // 검색창에 사용자가 입력한 검색어를 저장
-  let searchResultItems: ApiLocationData[] = []; // 검색 결과로 필터링 된 장소 데이터 저장
+  let searchResultItems: LocationData[] = []; // 검색 결과로 필터링 된 장소 데이터 저장
   let isSearchResultsPanelVisible = false; // 검색 결과 목록이 보이는 지 여부
 
   // --- Helper Functions ---
 
   // 하단 상세정보 시트 여는 함수
-  function openBottomSheet(location: ApiLocationData): void {
+  function openBottomSheet(location: LocationData): void {
     selectedLocation = location;
     isBottomSheetOpen = true;
   }
