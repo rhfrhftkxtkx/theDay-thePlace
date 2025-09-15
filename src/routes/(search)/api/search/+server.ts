@@ -51,14 +51,22 @@ export async function POST({ request }: RequestEvent): Promise<Response> {
 			requestData.searchMuseum = true;
 		}
 
-		ccbaItems = requestData.searchCcba
-			? await ccbaItemSearch(ccbaFilter, requestData.searchKeyword, requestData.pageNo)
-			: [];
+		try {
+			ccbaItems = requestData.searchCcba
+				? await ccbaItemSearch(ccbaFilter, requestData.searchKeyword, requestData.pageNo)
+				: [];
+		} catch (error) {
+			console.error('[api/+server.ts] CCBA item search error:', error);
+		}
 
-		// Museum 아이템 검색
-		museumItems = requestData.searchMuseum
-			? await museumItemSearch(museumFilter, requestData.searchKeyword, requestData.pageNo)
-			: [];
+		try {
+			// Museum 아이템 검색
+			museumItems = requestData.searchMuseum
+				? await museumItemSearch(museumFilter, requestData.searchKeyword, requestData.pageNo)
+				: [];
+		} catch (error) {
+			console.error('[api/+server.ts] Museum item search error:', error);
+		}
 
 		// 응답 데이터 생성
 		const responseData: ServerResponse = {

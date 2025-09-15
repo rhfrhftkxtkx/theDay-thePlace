@@ -12,8 +12,8 @@ const VISITKOREA_DETAIL_URL = 'https://apis.data.go.kr/B551011/KorService2/detai
 export const GET: RequestHandler = async ({ params }) => {
 	const { contentid } = params;
 
-	console.log(`[detail server] Fetching details for contentId: ${contentid}`);
-	console.log(`Using API Key: ${VISITKOREA_API_KEY ? 'Provided' : 'Not Provided'}`);
+	// console.log(`[detail server] Fetching details for contentId: ${contentid}`);
+	// console.log(`Using API Key: ${VISITKOREA_API_KEY ? 'Provided' : 'Not Provided'}`);
 
 	if (!VISITKOREA_API_KEY) {
 		return json({ error: '서버에 API 키가 설정되지 않았습니다.' }, { status: 500 });

@@ -23,6 +23,22 @@
   const imageAlt = type === 'ccba' ? ccba?.ccimDesc : museum?.title;
   const title = type === 'ccba' ? ccba?.ccbaMnm1 : museum?.title;
 
+  const badgeName = () => {
+    if (type === 'ccba') {
+      return '문화재';
+    } else if (type === 'museum') {
+      if (museum?.cat3 === 'A02060100') {
+        return '박물관';
+      } else if (museum?.cat3 === 'A02060200') {
+        return '기념관';
+      } else if (museum?.cat3 === 'A02060300') {
+        return '전시관';
+      } else {
+        return '기타';
+      }
+    }
+  };
+
   function handleClick() {
     if (type === 'ccba' && ccba) {
       window.location.href = `/ccba?ccbaAsno=${ccba.ccbaAsno}&ccbaCtcd=${ccba.ccbaCtcd}&ccbaKdcd=${ccba.ccbaKdcd}`;
@@ -50,7 +66,7 @@
             variant={type === 'ccba' ? 'default' : 'secondary'}
             class="text-xs ml-2 shrink-0"
           >
-            {type === 'ccba' ? '문화재' : '박물관'}
+            {badgeName()}
           </Badge>
         </div>
         <p class="text-xs line-clamp-2 mt-2">
