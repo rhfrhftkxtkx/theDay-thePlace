@@ -1,6 +1,11 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import type { Category, ServerResponse } from '$lib/searchTypes';
+import type {
+	Category,
+	SearchedCcbaItem,
+	SearchedMuseumItem,
+	ServerResponse
+} from '$/types/search.types';
 import { ccbaItemSearch } from './ccbaSearch';
 import { museumItemSearch } from './museumSearch';
 
@@ -29,22 +34,39 @@ export async function POST({ request }: RequestEvent): Promise<Response> {
 
 	try {
 		// 우선, 필터를 뜯어 CCBA와 Meseum으로 분리
-		const ccbaFilter: Category = requestData.searchFilter.filter((cat) => cat.code === 'ccba')[0];
-		const museumFilter: Category = requestData.searchFilter.filter(
+		const ccbaFilter: Category | undefined = requestData.searchFilter.find(
+			(cat) => cat.code === 'ccba'
+		);
+
+		const museumFilter: Category | undefined = requestData.searchFilter.find(
 			(cat) => cat.code === 'museum'
-		)[0];
+		);
+
+		let ccbaItems: SearchedCcbaItem[] = [];
+		let museumItems: SearchedMuseumItem[] = [];
 
 		// CCBA 아이템 검색
-		const ccbaItems =
-			requestData.searchCcba === undefined || requestData.searchCcba
+		if (requestData.searchCcba == undefined && requestData.searchMuseum == undefined) {
+			requestData.searchCcba = true;
+			requestData.searchMuseum = true;
+		}
+
+		try {
+			ccbaItems = requestData.searchCcba
 				? await ccbaItemSearch(ccbaFilter, requestData.searchKeyword, requestData.pageNo)
 				: [];
+		} catch (error) {
+			console.error('[api/+server.ts] CCBA item search error:', error);
+		}
 
-		// Museum 아이템 검색
-		const museumItems =
-			requestData.searchMuseum === undefined || requestData.searchMuseum
+		try {
+			// Museum 아이템 검색
+			museumItems = requestData.searchMuseum
 				? await museumItemSearch(museumFilter, requestData.searchKeyword, requestData.pageNo)
 				: [];
+		} catch (error) {
+			console.error('[api/+server.ts] Museum item search error:', error);
+		}
 
 		// 응답 데이터 생성
 		const responseData: ServerResponse = {

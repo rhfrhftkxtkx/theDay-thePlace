@@ -1,75 +1,88 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte'; //
-  // onMount: Svelte 컴포넌트가 처음 화면에 딱 그려지고 준비가 되었을 때, 그 직후에 *한 번만* 실행할 코드를 등록하는 함수
-  // onDestroy: Svelte 컴포넌트가 화면에서 사라지기 직전에 실행할 코드를 등록하는 함수
-  // onMount에서 등록했던 이벤트 리스너 등을 여기서 정리(제거)하여 메모리 누수를 방지
-  import { slide } from 'svelte/transition'; // 애니메이션
+  import { onMount, onDestroy } from 'svelte';
+  import { slide } from 'svelte/transition';
+  import type { PageData, LocationData } from '$lib/mapTypes';
+  // import OffcanvasTab from '$components/ui/OffcanvasTab.svelte';
+  import * as Drawer from '$lib/components/ui/drawer';
 
-  import type { PageData, ApiLocationData } from './+page';
-  import OffcanvasTab from '$/components/ui/OffcanvasTab/OffcanvasTab.svelte';
-  import { browser } from '$app/environment';
+  import HamburgerButton from '$components/ui/HamburgerButton.svelte';
+  import SideMenu from '$components/features/SideMenu.svelte';
+  import Fa from 'svelte-fa';
+  import { faXmark } from '@fortawesome/free-solid-svg-icons';
+  import TextCollapse from '$/components/ui/TextCollapse.svelte';
 
-  // Props
-  export let data: PageData;
+  interface Props {
+    data: PageData;
+  }
 
-  // 초기 위치 국립중앙박물관 기준
+  const { data }: Props = $props();
+
   const NATIONAL_MUSEUM_OF_KOREA_LAT = 37.5238506;
   const NATIONAL_MUSEUM_OF_KOREA_LNG = 126.9804702;
 
-  // 지도 관련 변수
-  let mapContainer: HTMLDivElement; // 지도가 그려질 div를 가르키는 변수
-  let map: any; // 실제 지도 객체를 저장할 변수
+  let isSideMenuOpen = $state(false);
+  let isBottomSheetOpen = $state(false);
+
+  let mapContainer: HTMLDivElement;
+  let map: any;
   let currentDbMarkers: Array<{
-    locationData: ApiLocationData;
+    locationData: LocationData;
     marker: any;
     infowindow: any;
   }> = [];
-  // locationData는 마커가 특정하는 위치(박물관)에 대한 모든 상세 정보
-  let mapClickListener: any = null; // 지도 클릭 이벤트 관련 정보 저장
+  let mapClickListener: any = null;
+  let selectedLocation: LocationData | null = $state(null);
+  let searchQuery: string = $state('');
+  let searchResultItems: LocationData[] = $state([]);
+  let isSearchResultsPanelVisible = $state(false);
 
-  // 하단 상세정보 시트 관련 변수
-  let selectedLocation: ApiLocationData | null = null; // 사용자가 선택한 장소의 상세정보 저장
-  let isBottomSheetOpen = false; // 하단 상세정보 시트 Open 여부
-
-  // 검색 기능 관련 변수
-  let searchQuery: string = ''; // 검색창에 사용자가 입력한 검색어를 저장
-  let searchResultItems: ApiLocationData[] = []; // 검색 결과로 필터링 된 장소 데이터 저장
-  let isSearchResultsPanelVisible = false; // 검색 결과 목록이 보이는 지 여부
-
-  // --- Helper Functions ---
-
-  // 하단 상세정보 시트 여는 함수
-  function openBottomSheet(location: ApiLocationData): void {
+  async function openBottomSheet(location: LocationData): Promise<void> {
     selectedLocation = location;
     isBottomSheetOpen = true;
+
+    if (!location.overview) {
+      try {
+        const response = await fetch(`/api/detail/${location.contentid}`);
+        const result = await response.json();
+        if (response.ok && result.overview) {
+          selectedLocation = { ...location, overview: result.overview };
+        } else {
+          selectedLocation = {
+            ...location,
+            overview:
+              '정보를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+          };
+        }
+      } catch (error) {
+        console.error('상세 정보 로딩 실패:', error);
+        selectedLocation = {
+          ...location,
+          overview: '서버와 통신할 수 없습니다. 네트워크 연결을 확인해 주세요.',
+        };
+      }
+    }
   }
 
-  // 하단 상세정보 시트 닫는 함수
   function closeBottomSheet(): void {
     isBottomSheetOpen = false;
     selectedLocation = null;
   }
 
-  // 마커를 표시하는 함수
   function setDbMarkersVisibility(
     visible: boolean,
     options?: { filterIds?: Set<number> }
   ): void {
-    //Set: 중복되지 않는 값들의 집합을 저장하는 자료구조
-    //has()메소드: 특정 값이 집합 안에 있는지 빠르게 확인할 때 유용
     const filterIds = options?.filterIds;
     currentDbMarkers.forEach((item) => {
-      // item은 forEach 안에서 마커, 하단 시트, 위치 정보를 모두 가진 객체체
-      let shouldBeVisible = visible; // 각각의 개별 마커가 표시되어야 하는 지 아닌 지 boolean 값을 가짐
+      let shouldBeVisible = visible;
       if (visible && filterIds && filterIds.size > 0) {
         shouldBeVisible = filterIds.has(item.locationData.contentid);
       }
       item.marker.setMap(shouldBeVisible ? map : null);
-      if (!shouldBeVisible && item.infowindow) item.infowindow.close(); //마커 표시가 false일 때, 하단 시트가 열려 있다면 닫아라.
+      if (!shouldBeVisible && item.infowindow) item.infowindow.close();
     });
   }
 
-  // 검색 상태 초기화 후 지도 위 전체 마커 재 생성 함수
   function clearSearchResultsAndShowAllDbMarkers(): void {
     isSearchResultsPanelVisible = false;
     searchResultItems = [];
@@ -78,7 +91,6 @@
     setDbMarkersVisibility(true);
   }
 
-  // 지도를 클릭 시 호출될 함수
   function handleMapClick(): void {
     if (isBottomSheetOpen) {
       closeBottomSheet();
@@ -87,9 +99,9 @@
     }
   }
 
-  // 검색 함수
-  async function handleSearch(): Promise<void> {
-    const query = searchQuery.toLowerCase().trim(); // 사용자가 입력한 검색어를 정제해서 저장
+  async function handleSearch(event: Event): Promise<void> {
+    event.preventDefault();
+    const query = searchQuery.toLowerCase().trim();
     if (!query) {
       clearSearchResultsAndShowAllDbMarkers();
       return;
@@ -98,11 +110,8 @@
     closeBottomSheet();
     isSearchResultsPanelVisible = false;
     searchResultItems = [];
-    // filteredDbLocations는 검색 결과에 맞는 장소 정보를 저장
     const filteredDbLocations = (data.locations || []).filter(
-      (
-        loc // data.locations가 배열로 존재하면 사용 아니면 빈 [] 사용
-      ) =>
+      (loc) =>
         loc.title?.toLowerCase().includes(query) ||
         loc.addr1?.toLowerCase().includes(query) ||
         loc.overview?.toLowerCase().includes(query)
@@ -113,9 +122,9 @@
       isSearchResultsPanelVisible = true;
       const filteredContentIds = new Set(
         filteredDbLocations.map((loc) => loc.contentid)
-      ); // map()은 배열의 각 요소에 주어진 함수를 실행 후 그 반환 값으로 이루어진 새로운 배열을 생성성
-      setDbMarkersVisibility(true, { filterIds: filteredContentIds }); // 즉 Set은 contentid로 이루어진 집합.
-      // bounds는 마커를 모두 포함하는 최소한의 영역
+      );
+      setDbMarkersVisibility(true, { filterIds: filteredContentIds });
+
       const bounds = new window.kakao.maps.LatLngBounds();
       let visibleMarkersForBounds = 0;
       currentDbMarkers.forEach((dbItem) => {
@@ -124,7 +133,7 @@
           visibleMarkersForBounds++;
         }
       });
-      // 검색 장소로 이동
+
       if (map && visibleMarkersForBounds > 0 && !bounds.isEmpty()) {
         map.setBounds(bounds);
         if (map.getLevel() > 10 && visibleMarkersForBounds <= 3)
@@ -138,11 +147,15 @@
     }
   }
 
-  // --- Lifecycle Functions ---
+  function escapeHTML(str: string | null): string {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
 
   onMount(() => {
     if (window.kakao && window.kakao.maps) {
-      // kakao SDK가 제대로 왔다면면
       window.kakao.maps.load(() => {
         const mapOptions = {
           center: new window.kakao.maps.LatLng(
@@ -152,7 +165,6 @@
           level: 7,
         };
         try {
-          // 지도 생성
           map = new window.kakao.maps.Map(mapContainer, mapOptions);
           mapClickListener = window.kakao.maps.event.addListener(
             map,
@@ -169,7 +181,6 @@
           ) {
             currentDbMarkers = [];
             data.locations.forEach((loc) => {
-              // 각 장소 정보(loc)에서 위도(mapy)와 경도(mapx)를 가져와 숫자로 변환
               const lat = loc.mapy ? parseFloat(loc.mapy) : NaN;
               const lng = loc.mapx ? parseFloat(loc.mapx) : NaN;
               if (!isNaN(lat) && !isNaN(lng) && loc.title) {
@@ -178,7 +189,7 @@
                   position: markerPosition,
                   map: map,
                 });
-                let typeName = '';
+                let typeName = '장소';
                 switch (loc.type) {
                   case 'museum':
                     typeName = '박물관';
@@ -189,10 +200,9 @@
                   case 'exhibition':
                     typeName = '전시관';
                     break;
-                  default:
-                    typeName = '장소';
                 }
-                const iwContent = `<div style="padding:5px;font-size:12px;text-align:center;min-width:120px;"><strong>${loc.title}</strong><br><span style="font-size:10px;color:gray;">(${typeName})</span></div>`;
+                const safeTitle = escapeHTML(loc.title);
+                const iwContent = `<div style="padding:5px;font-size:12px;text-align:center;min-width:120px;"><strong>${safeTitle}</strong><br><span style="font-size:10px;color:gray;">(${typeName})</span></div>`;
                 const infowindow = new window.kakao.maps.InfoWindow({
                   content: iwContent,
                 });
@@ -212,15 +222,16 @@
                 });
               } else {
                 console.warn(
-                  `[${loc.title || '제목 없음'}] 유효하지 않은 위치 데이터: mapy=${loc.mapy}, mapx=${loc.mapx}`
+                  `[${
+                    loc.title || '제목 없음'
+                  }] 유효하지 않은 위치 데이터: mapy=${loc.mapy}, mapx=${loc.mapx}`
                 );
               }
             });
           }
-          // 지도 안전성을 위한 미세한 텀텀
+
           setTimeout(() => {
             if (map && map.relayout) map.relayout();
-            console.log('map.relayout() called');
           }, 100);
         } catch (mapInitError: unknown) {
           console.error(
@@ -228,7 +239,7 @@
             mapInitError
           );
         }
-      }); // kakao.maps.load() 콜백의 끝
+      });
     } else {
       console.error('(+page.svelte) Kakao Maps SDK 찾을 수 없음');
       alert('지도 서비스 초기화 불가.');
@@ -242,233 +253,158 @@
   });
 </script>
 
-<div class="top-left-controls">
-  <form class="search-bar-container" on:submit|preventDefault={handleSearch}>
-    <input
-      type="text"
-      bind:value={searchQuery}
-      placeholder="박물관, 기념관, 전시관 검색..."
-    />
-    <button type="submit">검색</button>
-  </form>
-</div>
+<div class="w-screen h-screen flex flex-col">
+  <header class="flex-none bg-white shadow-md p-2 flex items-center gap-2 z-10">
+    <HamburgerButton on:click={() => (isSideMenuOpen = true)} />
+    <form
+      class="flex-grow bg-gray-100 p-2 rounded-lg flex gap-2 items-center"
+      onsubmit={handleSearch}
+    >
+      <input
+        type="text"
+        bind:value={searchQuery}
+        placeholder="박물관, 기념관, 전시관 검색..."
+        class="px-2 py-1 w-full text-base border-none outline-none bg-transparent"
+      />
+      <button
+        type="submit"
+        class="px-4 py-1 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-700 whitespace-nowrap"
+      >
+        검색
+      </button>
+    </form>
+  </header>
 
-<div class="filter-buttons-container">
-  <a href="/common" class="filter-button">상세 검색</a>
-  <a href="/common/museum" class="filter-button">박물관</a>
-  <a href="/common/ccba" class="filter-button">국가 유산</a>
-  <a href="/page4" class="filter-button">개발중...</a>
-</div>
+  <main class="flex-grow relative">
+    <div bind:this={mapContainer} class="w-full h-full"></div>
 
-{#if data}
-  {#if data.error && !isSearchResultsPanelVisible}
-    <div class="status-message error-message">
-      데이터 로딩 오류: {data.error}
-      {#if data.partialErrorDetails && data.partialErrorDetails.length > 0}
+    <SideMenu bind:isOpen={isSideMenuOpen} />
+
+    {#if data}
+      {#if data.error}
+        <div
+          class="absolute top-4 left-1/2 -translate-x-1/2 p-3 px-4 rounded-md shadow-lg bg-red-100 text-red-800 text-sm text-center z-20"
+        >
+          <strong>데이터 로딩 오류:</strong>
+          {data.error}
+        </div>
+      {:else if data.locations && data.locations.length === 0}
+        <div
+          class="absolute top-4 left-1/2 -translate-x-1/2 p-3 px-4 rounded-md shadow-lg bg-blue-100 text-blue-800 text-sm text-center z-20"
+        >
+          표시할 장소 데이터가 없습니다.
+        </div>
+      {/if}
+    {:else}
+      <div
+        class="absolute top-4 left-1/2 -translate-x-1/2 p-3 px-4 rounded-md shadow-lg bg-gray-100 text-gray-800 text-sm text-center z-20"
+      >
+        위치 데이터를 불러오는 중...
+      </div>
+    {/if}
+
+    {#if isSearchResultsPanelVisible && searchResultItems.length > 0}
+      <div
+        class="absolute bottom-0 left-0 right-0 z-20 bg-white rounded-t-2xl shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.3)] max-h-[40vh] overflow-y-auto"
+        transition:slide={{ duration: 200, axis: 'y' }}
+      >
+        <div
+          class="sticky top-0 bg-white/80 backdrop-blur-sm p-4 border-b border-gray-200 flex justify-between items-center"
+        >
+          <h4 class="font-bold text-lg">
+            검색 결과 ({searchResultItems.length}건)
+          </h4>
+          <button
+            class="text-2xl text-gray-500 hover:text-gray-800"
+            onclick={clearSearchResultsAndShowAllDbMarkers}
+            aria-label="검색 결과 닫기"
+          >
+            &times;
+          </button>
+        </div>
         <ul>
-          {#each data.partialErrorDetails as detail}
-            <li>{detail.table}: {detail.message}</li>
+          {#each searchResultItems as loc (loc.contentid)}
+            <li>
+              <button
+                type="button"
+                class="w-full text-left p-4 hover:bg-gray-50 border-b border-gray-200"
+                onclick={() => {
+                  if (map && loc.mapy && loc.mapx) {
+                    const lat = parseFloat(loc.mapy);
+                    const lng = parseFloat(loc.mapx);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                      map.panTo(new window.kakao.maps.LatLng(lat, lng));
+                    }
+                  }
+                  openBottomSheet(loc);
+                }}
+              >
+                <strong class="font-semibold">{loc.title}</strong>
+                <p class="text-sm text-gray-600 mt-1">
+                  {loc.addr1 || '주소 정보 없음'}
+                </p>
+              </button>
+            </li>
           {/each}
         </ul>
-      {/if}
-    </div>
-  {:else if data.locations && data.locations.length === 0 && !data.error && !isSearchResultsPanelVisible}
-    <div class="status-message info-message">
-      표시할 서울특별시 장소 데이터가 없습니다.
-    </div>
-  {/if}
-{:else if !data && !isSearchResultsPanelVisible}
-  <div class="status-message loading-message">위치 데이터를 불러오는 중...</div>
-{/if}
+      </div>
+    {/if}
 
-<div bind:this={mapContainer} class="map-fullscreen"></div>
-
-{#if isSearchResultsPanelVisible && searchResultItems.length > 0}
-  <div
-    class="search-results-panel"
-    transition:slide={{ duration: 200, axis: 'y' }}
-  >
-    <div class="panel-header">
-      <h4>검색 결과 ({searchResultItems.length}건)</h4>
-      <button
-        class="close-panel-button"
-        on:click={clearSearchResultsAndShowAllDbMarkers}
-        aria-label="검색 결과 닫기"
-      >
-        &times;
-      </button>
-    </div>
-    <ul>
-      {#each searchResultItems as loc (loc.contentid)}
-        <li>
+    <Drawer.Root bind:open={isBottomSheetOpen}>
+      <Drawer.Content>
+        <div
+          class="flex justify-between items-center py-3 px-4 border border-neutral-300 dark:border-neutral-600"
+        >
+          <span class="bg-none p-2 text-xl">&nbsp;</span>
+          <h3 class="items-center text-xl justify-center text-center font-bold">
+            {selectedLocation?.title || '상세 정보'}
+          </h3>
           <button
-            type="button"
-            class="list-item-button"
-            on:click={() => {
-              if (map && loc.mapy && loc.mapx) {
-                const lat = parseFloat(loc.mapy);
-                const lng = parseFloat(loc.mapx);
-                if (!isNaN(lat) && !isNaN(lng)) {
-                  map.panTo(new window.kakao.maps.LatLng(lat, lng));
-                }
-              }
-              openBottomSheet(loc);
-            }}
+            class="bg-none text-xl p-2 cursor-pointer hover:bg-neutral-400 dark:hover:bg-neutral-500 rounded-full transition-colors duration-300 ease-in-out"
+            onclick={() => (isBottomSheetOpen = false)}
+            aria-label="Close offcanvas"
           >
-            <strong>{loc.title}</strong>
-            <p>{loc.addr1 || '주소 정보 없음'}</p>
+            <div class="w-6 h-6 items-center flex justify-center">
+              <div class="sr-only">Close</div>
+              <Fa icon={faXmark} />
+            </div>
           </button>
-        </li>
-      {/each}
-    </ul>
-  </div>
-{/if}
+        </div>
+        <div class="grow">
+          <div class="p-5 h-full">
+            <div class="w-full h-full overflow-y-auto">
+              <p class="text-base text-center leading-relaxed">
+                {#if selectedLocation && selectedLocation.overview}
+                  <TextCollapse text={selectedLocation.overview} />
+                {:else}
+                  정보를 불러오는 중...
+                {/if}
+              </p>
+            </div>
+          </div>
+        </div>
+      </Drawer.Content>
+    </Drawer.Root>
 
-{#if selectedLocation}
-  <OffcanvasTab
-    title={selectedLocation.title || '상세 정보'}
-    isOpen={isBottomSheetOpen}
-    closeOffcanvas={closeBottomSheet}
-    initialHeight={80}
-  >
-    <div class="bottom-sheet-content">
-      <div class="scrollable-wrapper">
-				<p class="overview-text">
-					{selectedLocation.overview || '등록된 개요 정보가 없습니다.'}
-				</p>
-			</div>
-    </div>
-  </OffcanvasTab>
-{/if}
-
-<style>
-  /* Global and Map Styles */
-  :global(html),
-  :global(body) {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-  }
-  .map-fullscreen {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-    z-index: 1;
-    background-color: #e9e5dc;
-  }
-
-  /* --- Search Area Styles --- */
-  .top-left-controls {
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    right: 15px;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-  }
-
-  .search-bar-container {
-    flex-grow: 1;
-    background-color: white;
-    padding: 8px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    min-width: 0;
-  }
-  .search-bar-container input[type='text'] {
-    padding: 8px 12px;
-    border-radius: 4px;
-    width: 100%;
-    font-size: 1em;
-    border: none;
-    outline: none;
-    background: transparent;
-  }
-  .search-bar-container button {
-    padding: 8px 15px;
-    border: none;
-    background-color: #5e7ff1;
-    color: white;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: bold;
-    height: 38px;
-    white-space: nowrap;
-  }
-  .search-bar-container button:hover {
-    background-color: #4a6cde;
-  }
-
-  /* --- Filter Buttons Styles --- */
-  .filter-buttons-container {
-    position: fixed;
-    top: 84px;
-    left: 15px;
-    right: 15px;
-    z-index: 1000;
-    display: flex;
-    gap: 8px;
-  }
-  .filter-button {
-    flex-grow: 1; /* 버튼들이 동일한 비율로 공간을 차지 */
-    flex-basis: 0; /* 모든 버튼이 동일한 기본 너비에서 시작 */
-
-    padding: 8px 16px;
-    border: 1px solid #ccc;
-    border-radius: 15px;
-    background-color: rgba(255, 255, 255, 0.9);
-    color: #333;
-    font-size: 0.9em;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    transition:
-      background-color 0.2s,
-      color 0.2s;
-    text-decoration: none;
-    text-align: center; /* 버튼 너비가 변하므로 텍스트 중앙 정렬 */
-  }
-
-  .filter-button:hover {
-    background-color: #f0f0f0;
-  }
-
-  /* --- 기타 UI 스타일 --- */
-  .status-message {
-    position: fixed;
-    top: 85px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 15px;
-    border-radius: 5px;
-    z-index: 1001;
-    font-size: 0.9em;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    text-align: center;
-  }
-
-  .bottom-sheet-content {
-    height: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-  }
-  .overview-text {
-    font-size: 1.1em;
-    text-align: center;
-    line-height: 1.6;
-  }
-
-  .scrollable-wrapper {
-        width: 100%;
-        height: 100%;
-        overflow-y: auto; 
-    }
-
-    
-</style>
+    <!-- {#if selectedLocation}
+      <OffcanvasTab
+        title={selectedLocation.title || '상세 정보'}
+        isOpen={isBottomSheetOpen}
+        closeOffcanvas={closeBottomSheet}
+        initialHeight={80}
+      >
+        <div class="p-5 h-full">
+          <div class="w-full h-full overflow-y-auto">
+            <p class="text-base text-center leading-relaxed">
+              {#if selectedLocation.overview}
+                {selectedLocation.overview}
+              {:else}
+                정보를 불러오는 중...
+              {/if}
+            </p>
+          </div>
+        </div>
+      </OffcanvasTab>
+    {/if} -->
+  </main>
+</div>

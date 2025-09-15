@@ -1,53 +1,27 @@
+// src/routes/locations/+page.ts
+
 import type { PageLoad } from './$types';
-// +server.ts 에서 ApiLocationData 를 가져올 때, 구분을 위해 임시로 ServerApiLocationData로 명명
-import type { ApiLocationData as ServerApiLocationData } from './api/locations/+server';
-
-export type ApiLocationData = ServerApiLocationData;
-
-export interface PageData {
-	locations: ApiLocationData[]; // 이제 이 ApiLocationData는 위에서 re-export된 타입
-	error: string | null;
-	partialErrorDetails?: { table: string; message: string }[] | null;
-}
+import type { PageData } from '$lib/mapTypes';
 
 export const load: PageLoad<PageData> = async ({ fetch }) => {
 	try {
+        // API에 데이터를 요청하고, 응답을 PageData 타입으로 기대합니다.
 		const response = await fetch('/api/locations');
-		const result: {
-			// API 응답이 이 구조를 따를 것으로 기대
-			locations: ApiLocationData[]; // ServerApiLocationData 또는 로컬 ApiLocationData 사용
-			error: string | null;
-			partialErrorDetails?: { table: string; message: string }[] | null;
-		} = await response.json();
+		const data: PageData = await response.json();
 
-		// 오류 처리
-		if (!response.ok && !(result && typeof result.locations !== 'undefined')) {
-			const errorMsg = result?.error || `API 요청 실패, 상태 코드: ${response.status}`;
-			console.error('(+page.ts) API 응답 에러 (HTTP 또는 구조 문제):', response.status, errorMsg);
-			return {
-				locations: [],
-				error: errorMsg,
-				partialErrorDetails: result?.partialErrorDetails || null
-			};
+		if (!response.ok) {
+			throw new Error(data.error || 'API로부터 데이터를 가져오는 데 실패했습니다.');
 		}
-		//console.log('(+page.ts) /api/locations로부터 받은 데이터:', result);
-		return {
-			locations: result.locations || [],
-			error: result.error || null,
-			partialErrorDetails: result.partialErrorDetails || null
-		};
+
+		return data; // 성공 시, 받은 데이터를 그대로 페이지에 전달
+
 	} catch (e: unknown) {
-		console.error('(+page.ts) load 함수 내에서 예외 발생:', e);
-		let errorMessage = '데이터 로딩 중 알 수 없는 오류가 발생했습니다.';
-		if (e instanceof Error) {
-			errorMessage = e.message;
-		} else if (typeof e === 'string') {
-			errorMessage = e;
-		}
+		const message = e instanceof Error ? e.message : String(e);
+		console.error('(+page.ts) load 함수 에러:', message);
+		// 실패 시, 에러 정보를 포함한 PageData 객체를 페이지에 전달
 		return {
 			locations: [],
-			error: `데이터 로딩 중 예외 발생: ${errorMessage}`,
-			partialErrorDetails: null
+			error: message
 		};
 	}
 };

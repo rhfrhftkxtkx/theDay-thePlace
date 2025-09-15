@@ -1,109 +1,79 @@
 // src/routes/api/locations/+server.ts
+
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createClient } from '@supabase/supabase-js';
 import { env } from '$env/dynamic/private';
+import type { LocationData, KtoApiResponse, KtoApiItem } from '$lib/mapTypes';
 
-const supabase = createClient(env.SUPABASE_URL!, env.SUPABASE_ANON_KEY!);
-
-export interface ApiLocationData {
-	contentid: number;
-	title: string | null;
-	mapx: string | null;
-	mapy: string | null;
-	type: 'museum' | 'memorial' | 'exhibition';
-	addr1?: string | null;
-	overview?: string | null;
-}
-
-interface ApiErrorDetail {
-	table: string;
-	message: string;
-}
-
-export interface ApiResponse {
-	locations: ApiLocationData[];
-	error: string | null;
-	partialErrorDetails?: ApiErrorDetail[] | null;
-}
+const VISITKOREA_API_KEY = env.OPEN_API_KEY;
+const VISITKOREA_API_URL = 'https://apis.data.go.kr/B551011/KorService2/areaBasedList2';
 
 export const GET: RequestHandler = async () => {
-	console.log('[+server.ts] API /api/locations: 서울 지역 데이터 요청 시작');
-	try {
-		const seoulAreaCode = '1';
-		const selectColumns = 'contentid, title, mapx, mapy, addr1, overview';
+	if (!VISITKOREA_API_KEY) {
+		const errorMsg = '서버에 API 키가 설정되지 않았습니다.';
+		console.error(`[+server.ts] ${errorMsg}`);
+		return json({ locations: [], error: errorMsg }, { status: 500 });
+	}
 
-		const tablesToQuery = [
-			{ name: 'museum_info', type: 'museum' as const },
-			{ name: 'memorial_info', type: 'memorial' as const },
-			{ name: 'exhibition_info', type: 'exhibition' as const }
+	try {
+		// 조회할 카테고리 목록 정의
+		const categories = [
+			{ type: 'museum', cat3: 'A02060100' }, // 박물관
+			{ type: 'memorial', cat3: 'A02060300' }, // 기념관
+			{ type: 'exhibition', cat3: 'A02060200' } // 전시관
 		];
 
-		const promises = tablesToQuery.map((tableInfo) =>
-			supabase.from(tableInfo.name).select(selectColumns).eq('areacode', seoulAreaCode)
-		);
+		// 각 카테고리에 대한 API 요청을 Promise 배열로 생성
+		const fetchPromises = categories.map(async (category) => {
+			const requestUrl = `${VISITKOREA_API_URL}?serviceKey=${VISITKOREA_API_KEY}&numOfRows=10000&MobileApp=TheDay_ThePlace&MobileOS=ETC&_type=json&arrange=A&cat1=A02&cat2=A0206&cat3=${category.cat3}`;
+			const response = await fetch(requestUrl);
 
-		const results = await Promise.allSettled(promises);
+			if (!response.ok) {
+				throw new Error(`API 요청 실패: ${category.type}`);
+			}
 
-		let allLocations: ApiLocationData[] = [];
-		let errors: ApiErrorDetail[] = [];
+			const apiResult = (await response.json()) as KtoApiResponse;
+
+			if (apiResult.response?.header?.resultCode !== '0000') {
+				throw new Error(`API 에러 (${category.type}): ${apiResult.response?.header?.resultMsg}`);
+			}
+
+			const items = apiResult.response.body.items.item || [];
+			// 각 아이템에 'type' 속성을 추가하여 반환
+			return items.map((item) => ({ ...item, type: category.type }));
+		});
+
+		// 모든 API 요청을 동시에 실행하고 결과 기다리기
+		const results = await Promise.allSettled(fetchPromises);
+		let allLocations: LocationData[] = [];
 
 		results.forEach((result, index) => {
-			const tableName = tablesToQuery[index].name;
-			const itemType = tablesToQuery[index].type;
-
 			if (result.status === 'fulfilled') {
-				const { data, error: supabaseQueryError } = result.value; // supabase specific error
-				if (supabaseQueryError) {
-					console.error(`[+server.ts] Supabase error (${tableName}):`, supabaseQueryError);
-					errors.push({ table: tableName, message: supabaseQueryError.message });
-				} else if (data) {
-					allLocations = allLocations.concat(data.map((item) => ({ ...item, type: itemType })));
-				}
+				// 성공한 요청의 결과(items 배열)를 allLocations에 추가
+				const itemsWithType = result.value;
+				const locations = itemsWithType.map((item: KtoApiItem & { type: string }) => ({
+					contentid: Number(item.contentid),
+					title: item.title,
+					mapx: item.mapx,
+					mapy: item.mapy,
+					type: item.type,
+					addr1: item.addr1
+				}));
+				allLocations = allLocations.concat(locations);
 			} else {
-				console.error(`[+server.ts] Promise rejected (${tableName}):`, result.reason);
-				errors.push({ table: tableName, message: 'Supabase query promise rejected' });
+				// 실패한 요청은 콘솔에 에러 기록
+				console.error(
+					`[+server.ts] '${categories[index].type}' 카테고리 데이터 로딩 실패:`,
+					result.reason
+				);
 			}
 		});
 
-		const responsePayload: ApiResponse = {
-			locations: allLocations,
-			error:
-				errors.length > 0
-					? `일부 테이블(${errors.map((e) => e.table).join(', ')})에서 데이터를 가져오는 데 실패했습니다.`
-					: null,
-			partialErrorDetails: errors.length > 0 ? errors : null
-		};
-
-		if (allLocations.length > 0 || errors.length === 0) {
-			console.log(
-				`[+server.ts] Supabase에서 가져온 전체 서울 위치 데이터 (${allLocations.length}개)`
-			);
-			return json(responsePayload, { status: 200 });
-		} else {
-			// allLocations.length === 0 && errors.length > 0
-			console.error(
-				'[+server.ts] 모든 테이블에서 데이터를 가져오는데 실패했거나 데이터가 없습니다:',
-				errors
-			);
-			// 에러가 주된 상황이므로 HTTP 상태 코드를 500으로 할 수도 있지만,
-			// 클라이언트에서 error 메시지를 보고 판단하도록 200으로 하고 error 필드를 채울 수도 있습니다.
-			// 여기서는 500으로 명확한 서버측 문제를 알립니다.
-			return json(responsePayload, { status: 500 });
-		}
-	} catch (e: unknown) {
-		console.error('[+server.ts] API 라우트에서 최상위 예외 발생:', e);
-		let errorMessage = '알 수 없는 서버 오류 발생';
-		if (e instanceof Error) {
-			errorMessage = e.message;
-		} else if (typeof e === 'string') {
-			errorMessage = e;
-		}
-		const responsePayload: ApiResponse = {
-			locations: [],
-			error: errorMessage,
-			partialErrorDetails: null
-		};
-		return json(responsePayload, { status: 500 });
+		console.log(`[+server.ts] TourAPI에서 가져온 총 데이터 ${allLocations.length}개`);
+		return json({ locations: allLocations, error: null }, { status: 200 });
+	} catch (e) {
+		const message = e instanceof Error ? e.message : '알 수 없는 서버 오류 발생';
+		console.error('[+server.ts] API 라우트에서 예외 발생:', message);
+		return json({ locations: [], error: message }, { status: 500 });
 	}
 };

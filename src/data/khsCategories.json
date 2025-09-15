@@ -26,7 +26,7 @@
 		"code": "ccbaCtcd",
 		"name": "지역",
 		"item": [
-			{ "code": "00", "name": "전체", "item": [] },
+			{ "code": "ZZ", "name": "전체", "item": [] },
 			{ "code": "11", "name": "서울특별시", "item": [] },
 			{ "code": "21", "name": "부산광역시", "item": [] },
 			{ "code": "22", "name": "대구광역시", "item": [] },
