@@ -156,10 +156,11 @@ function parseXMLToCcbaItemImageResponse(xml: string): CcbaItemImageResponse {
 		return Array.isArray(value) ? value : [value];
 	}
 
-	let resSn = toArray(result.item.sn);
-	let resImageNuri = toArray(result.item.imageNuri);
-	let resImageUrl = toArray(result.item.imageUrl);
-	let resCcimDesc = toArray(result.item.ccimDesc);
+	const resSn = toArray(result.item.sn);
+	const resImageNuri = toArray(result.item.imageNuri);
+	const resImageUrl = toArray(result.item.imageUrl);
+	const resCcimDesc = toArray(result.item.ccimDesc);
+
 	const results: CcbaItemImageResponse = {
 		ccbaKdcd: result.ccbaKdcd || '',
 		ccbaAsno:
