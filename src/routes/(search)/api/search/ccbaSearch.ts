@@ -16,7 +16,7 @@ const ASNO_LENGTH: number = 13;
 // 아이템 목록을 검색하는 함수
 // ccbaFilter는 server.ts에서 국가유산 종목만 필터링된 Category 배열
 export async function ccbaItemSearch(
-	ccbaFilter: Category,
+	ccbaFilter: Category | undefined,
 	Keyword: string,
 	pageNo: number
 ): Promise<SearchedCcbaItem[]> {
@@ -151,6 +151,15 @@ function parseXMLToCcbaItemImageResponse(xml: string): CcbaItemImageResponse {
 		};
 	}
 
+	// Helper to normalize a value to an array
+	function toArray<T>(value: T | T[]): T[] {
+		return Array.isArray(value) ? value : [value];
+	}
+
+	let resSn = toArray(result.item.sn);
+	let resImageNuri = toArray(result.item.imageNuri);
+	let resImageUrl = toArray(result.item.imageUrl);
+	let resCcimDesc = toArray(result.item.ccimDesc);
 	const results: CcbaItemImageResponse = {
 		ccbaKdcd: result.ccbaKdcd || '',
 		ccbaAsno:
@@ -160,10 +169,10 @@ function parseXMLToCcbaItemImageResponse(xml: string): CcbaItemImageResponse {
 		ccbaCtcd: result.ccbaCtcd || '',
 		ccbaMnm1: result.ccbaMnm1 || '',
 		ccbaMnm2: result.ccbaMnm2 || '',
-		sn: result.item.sn[0] || 0,
-		imageNuri: result.item.imageNuri[0] || '',
-		imageUrl: result.item.imageUrl[0] || '',
-		ccimDesc: result.item.ccimDesc[0] || ''
+		sn: resSn[0] || 0,
+		imageNuri: resImageNuri[0] || '',
+		imageUrl: resImageUrl[0] || '',
+		ccimDesc: resCcimDesc[0] || ''
 	};
 
 	return results;

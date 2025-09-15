@@ -45,21 +45,20 @@ export async function POST({ request }: RequestEvent): Promise<Response> {
 		let ccbaItems: SearchedCcbaItem[] = [];
 		let museumItems: SearchedMuseumItem[] = [];
 
-		if (ccbaFilter) {
-			// CCBA 아이템 검색
-			ccbaItems =
-				requestData.searchCcba === undefined || requestData.searchCcba
-					? await ccbaItemSearch(ccbaFilter, requestData.searchKeyword, requestData.pageNo)
-					: [];
+		// CCBA 아이템 검색
+		if (requestData.searchCcba == undefined && requestData.searchMuseum == undefined) {
+			requestData.searchCcba = true;
+			requestData.searchMuseum = true;
 		}
 
-		if (museumFilter) {
-			// Museum 아이템 검색
-			museumItems =
-				requestData.searchMuseum === undefined || requestData.searchMuseum
-					? await museumItemSearch(museumFilter, requestData.searchKeyword, requestData.pageNo)
-					: [];
-		}
+		ccbaItems = requestData.searchCcba
+			? await ccbaItemSearch(ccbaFilter, requestData.searchKeyword, requestData.pageNo)
+			: [];
+
+		// Museum 아이템 검색
+		museumItems = requestData.searchMuseum
+			? await museumItemSearch(museumFilter, requestData.searchKeyword, requestData.pageNo)
+			: [];
 
 		// 응답 데이터 생성
 		const responseData: ServerResponse = {

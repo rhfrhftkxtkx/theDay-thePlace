@@ -10,11 +10,36 @@
   import Button from '$/lib/components/ui/button/button.svelte';
   import * as Select from '$/lib/components/ui/select/index';
   import { type Category } from '$/types/search.types';
+  import { afterNavigate } from '$app/navigation';
+
+  interface Props {
+    searchedCallback: () => Promise<void>;
+    isLoading?: boolean;
+  }
+
+  const { searchedCallback, isLoading } = $props();
 
   // 오프캔버스 탭을 열고 닫기 위한 상태 변수
   let isSelectorOpen = $state(false);
 
-  let categoryList: Category[] = $state([]);
+  let categoryList: Category[] = $derived([
+    {
+      code: 'ccba',
+      name: '문화유산',
+      item: $ccbaList,
+    },
+    {
+      code: 'museum',
+      name: '박물관',
+      item: [
+        {
+          code: 'areaCode',
+          name: '지역',
+          item: $visitKorAreaCode2,
+        },
+      ],
+    },
+  ]);
   let cat2List: Category[] = $state([]);
   let cat3List: Category[] = $state([]);
 
@@ -28,27 +53,27 @@
   let selectedCat2: string | undefined = $state(undefined);
   let selectedCat3: string | undefined = $state(undefined);
 
-  function setDefaultCategoryList(): void {
-    // 기본 카테고리 리스트를 설정하는 함수
-    categoryList = [
-      {
-        code: 'ccba',
-        name: '문화유산',
-        item: $ccbaList,
-      },
-      {
-        code: 'museum',
-        name: '박물관',
-        item: [
-          {
-            code: 'areaCode',
-            name: '지역',
-            item: $visitKorAreaCode2,
-          },
-        ],
-      },
-    ];
-  }
+  // function setDefaultCategoryList(): void {
+  //   // 기본 카테고리 리스트를 설정하는 함수
+  //   categoryList = [
+  //     {
+  //       code: 'ccba',
+  //       name: '문화유산',
+  //       item: $ccbaList,
+  //     },
+  //     {
+  //       code: 'museum',
+  //       name: '박물관',
+  //       item: [
+  //         {
+  //           code: 'areaCode',
+  //           name: '지역',
+  //           item: $visitKorAreaCode2,
+  //         },
+  //       ],
+  //     },
+  //   ];
+  // }
 
   function resetSelections(): void {
     // 선택된 카테고리들을 초기화하는 함수
@@ -75,7 +100,7 @@
   onMount(() => {
     // 컴포넌트가 마운트될 때 실행되는 함수
     mounted = true;
-    setDefaultCategoryList();
+    // setDefaultCategoryList();
     resetSelections();
   });
 </script>
@@ -86,8 +111,11 @@
   variant="outline"
   class="w-full justify-between border border-neutral-400 bg-neutral-50 text-black dark:bg-neutral-800 dark:border-neutral-500 rounded-lg px-4 py-2 flex items-center dark:text-white dark:hover:text-white hover:bg-neutral-200 hover:text-black dark:hover:bg-neutral-700 transition-colors duration-300"
   onclick={() => (isSelectorOpen = !isSelectorOpen)}
+  disabled={isLoading}
 >
-  <span class="text-base">카테고리 필터</span>
+  <span class="text-base">
+    {isLoading ? '로딩 중...' : '카테고리 필터'}
+  </span>
   {#if isSelectorOpen}
     <Fa icon={faChevronUp} />
   {:else}
@@ -266,8 +294,18 @@
         </Select.Root>
       </div>
       <Button
+        variant="default"
+        class="w-full justify-center rounded-lg px-4 py-2 mt-4 transition-colors duration-300"
+        onclick={() => {
+          // 선택 초기화 버튼 클릭 시 모든 선택 초기화
+          searchedCallback();
+        }}
+      >
+        필터 검색
+      </Button>
+      <Button
         variant="outline"
-        class="w-full justify-center border border-neutral-400 bg-neutral-50 text-black dark:bg-neutral-800 dark:border-neutral-500 rounded-lg px-4 py-2 mt-4 hover:bg-neutral-200 hover:text-black dark:hover:bg-neutral-700 transition-colors duration-300"
+        class="w-full justify-center rounded-lg px-4 py-2 mt-4 transition-colors duration-300"
         onclick={() => {
           // 선택 초기화 버튼 클릭 시 모든 선택 초기화
           resetSelections();

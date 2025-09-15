@@ -4,19 +4,27 @@
   import { Skeleton } from '$/lib/components/ui/skeleton';
 </script>
 
-<Card class="cursor-default">
+<Card class="cursor-default animate-pulse">
   <CardContent class="p-4">
     <div class="flex gap-3">
-      <Skeleton class="w-20 h-20 rounded-lg" />
+      <Skeleton
+        class="w-20 h-20 rounded-lg bg-neutral-200 dark:bg-neutral-700"
+      />
       <div class="flex-1 min-w-0">
         <div class="flex items-start justify-between mb-2">
-          <Skeleton class="w-80 h-8 rounded-md" />
+          <Skeleton
+            class="w-80 h-8 rounded-md bg-neutral-200 dark:bg-neutral-700"
+          />
         </div>
         <p class="text-xs line-clamp-2 mt-2">
-          <Skeleton class="w-120 h-5 rounded-md" />
+          <Skeleton
+            class="w-120 h-5 rounded-md bg-neutral-200 dark:bg-neutral-700"
+          />
         </p>
         <p class="text-xs mt-1">
-          <Skeleton class="w-60 h-5 rounded-md" />
+          <Skeleton
+            class="w-60 h-5 rounded-md bg-neutral-200 dark:bg-neutral-700"
+          />
         </p>
       </div>
     </div>

@@ -26,14 +26,14 @@
         : `${ccbaItems.length + museumItems.length}개의 결과`}
     </span>
   </div>
-  {#if ccbaItems.length === 0 && museumItems.length === 0}
+  {#if ccbaItems.length === 0 && museumItems.length === 0 && !isLoading}
     <p class="mt-4 text-center text-neutral-600 dark:text-neutral-400">
       검색 결과가 없습니다.
     </p>
   {:else}
     <div class="my-3 flex flex-col gap-4">
       {#if isLoading}
-        {#each Array(3) as _}
+        {#each Array(5) as _}
           <SkeletonCard />
         {/each}
       {:else}

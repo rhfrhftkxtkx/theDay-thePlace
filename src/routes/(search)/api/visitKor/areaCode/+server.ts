@@ -1,5 +1,4 @@
 import { env } from '$env/dynamic/private';
-import type { RequestEvent } from '@sveltejs/kit';
 import type { Category } from '$/types/search.types';
 
 const API_KEY: string | undefined = env.OPEN_API_KEY;
@@ -26,7 +25,7 @@ interface AreaCodeResponse {
 	};
 }
 
-export async function GET({ params }: RequestEvent): Promise<Response> {
+export async function GET(): Promise<Response> {
 	// visitKor는 지역 코드 조회를 제공하므로, 해당 API를 호출하여 지역 코드를 가져옴
 
 	if (!API_KEY) {
