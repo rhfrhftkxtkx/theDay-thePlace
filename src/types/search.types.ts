@@ -110,6 +110,7 @@ export interface SearchedMuseumItem {
 	tel: string;
 	mapx: string;
 	mapy: string;
+	cat3: string;
 }
 
 export interface ServerResponse {

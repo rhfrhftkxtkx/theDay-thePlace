@@ -30,46 +30,53 @@ export async function museumItemSearch(
 	let result: SearchedMuseumItem[] = [];
 
 	const apiType = Keyword === '' || !Keyword ? 'areaBasedSyncList2' : 'searchKeyword2';
+	const cat3List = ['A20260100', 'A02060200', 'A02060300'];
+	const fetchPromises = [];
 	if (isInvalidFilter) {
-		await fetch(
-			`${VISITKOREA_API_URL}/${apiType}?serviceKey=${
-				API_KEY
-			}&MobileOS=WEB&MobileApp=TheDay_ThePlace&cat1=A02&cat2=A0206&cat3=A02060300&_type=json&${
-				apiType === 'searchKeyword2' ? `keyword=${encodeURIComponent(Keyword)}` : ''
-			}&numOfRows=10&pageNo=${pageNo}`
-		).then(async (response) => {
-			await processingResponse(response)
-				.then((data) => {
-					result = data;
-				})
-				.catch((error) => {
-					console.error(error);
-				});
-		});
+		fetchPromises.push(
+			...cat3List.map(async (cat3) => {
+				const response = await fetch(
+					`${VISITKOREA_API_URL}/${apiType}?serviceKey=${
+						API_KEY
+					}&MobileOS=WEB&MobileApp=TheDay_ThePlace&cat1=A02&cat2=A0206&cat3=${cat3}&_type=json&${
+						apiType === 'searchKeyword2' ? `keyword=${encodeURIComponent(Keyword)}` : ''
+					}&numOfRows=10&pageNo=${pageNo}`
+				);
+
+				const data = await processingResponse(response);
+				return data;
+			})
+		);
 	} else {
 		for (const cat2 of museumLocationFilter) {
 			const items: Category[] = cat2.item;
 			for (const item of items) {
-				await fetch(
-					`${VISITKOREA_API_URL}/${apiType}?serviceKey=${
-						API_KEY
-					}&MobileOS=WEB&MobileApp=TheDay_ThePlace&cat1=A02&cat2=A0206&cat3=A02060300&_type=json&${
-						cat2.code
-					}=${item.code}&${
-						apiType === 'searchKeyword2' ? `keyword=${encodeURIComponent(Keyword)}` : ''
-					}&numOfRows=10&pageNo=${pageNo}`
-				).then(async (response) => {
-					await processingResponse(response)
-						.then((data) => {
-							result = [...result, ...data];
-						})
-						.catch((error) => {
-							console.error(error);
-						});
-				});
+				fetchPromises.push(
+					...cat3List.map(async (cat3) => {
+						const response = await fetch(
+							`${VISITKOREA_API_URL}/${apiType}?serviceKey=${
+								API_KEY
+							}&MobileOS=WEB&MobileApp=TheDay_ThePlace&cat1=A02&cat2=A0206&cat3=${cat3}&_type=json&${
+								cat2.code
+							}=${item.code}&${
+								apiType === 'searchKeyword2' ? `keyword=${encodeURIComponent(Keyword)}` : ''
+							}&numOfRows=10&pageNo=${pageNo}`
+						);
+
+						const data = await processingResponse(response);
+						return data;
+					})
+				);
 			}
 		}
 	}
+
+	const data = await Promise.allSettled(fetchPromises);
+	data.forEach((d) => {
+		if (d.status === 'fulfilled') {
+			result = [...result, ...d.value];
+		}
+	});
 	return result;
 }
 
@@ -88,7 +95,8 @@ async function processingResponse(response: Response): Promise<SearchedMuseumIte
 			addr1: mItem.addr1,
 			tel: mItem.tel || '',
 			mapx: mItem.mapx,
-			mapy: mItem.mapy
+			mapy: mItem.mapy,
+			cat3: mItem.cat3
 		};
 		result.push(searchedItem);
 	}

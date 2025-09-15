@@ -83,32 +83,34 @@ export async function ccbaItemSearch(
 
 async function getCCbaItems(responseXML: string): Promise<SearchedCcbaItem[]> {
 	const ccbaItems = parseXMLToCcbaItemResponse(responseXML);
-	const result: SearchedCcbaItem[] = [];
+
+	let result: SearchedCcbaItem[] = [];
 	try {
-		for (const item of ccbaItems) {
-			await fetch(
+		const fetchPromises = ccbaItems.map(async (item) => {
+			const response = await fetch(
 				`${CCBA_IMAGE_API_URL}?ccbaKdcd=${item.ccbaKdcd}&ccbaAsno=${item.ccbaAsno}&ccbaCtcd=${item.ccbaCtcd}`
-			).then(async (response) => {
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
-				const xml = await response.text();
-				const image: CcbaItemImageResponse = parseXMLToCcbaItemImageResponse(xml);
-				const searchedItem: SearchedCcbaItem = {
-					no: item.no,
-					ccmaName: item.ccmaName,
-					ccbaMnm1: item.ccbaMnm1,
-					ccbaCtcdNm: item.ccbaCtcdNm,
-					ccbaAdmin: item.ccbaAdmin,
-					ccbaKdcd: item.ccbaKdcd,
-					ccbaAsno: item.ccbaAsno,
-					ccbaCtcd: item.ccbaCtcd,
-					imageUrl: image.imageUrl,
-					ccimDesc: image.ccimDesc
-				};
-				result.push(searchedItem);
-			});
-		}
+			);
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			const xml = await response.text();
+			const image: CcbaItemImageResponse = parseXMLToCcbaItemImageResponse(xml);
+			const searchedItem: SearchedCcbaItem = {
+				no: item.no,
+				ccmaName: item.ccmaName,
+				ccbaMnm1: item.ccbaMnm1,
+				ccbaCtcdNm: item.ccbaCtcdNm,
+				ccbaAdmin: item.ccbaAdmin,
+				ccbaKdcd: item.ccbaKdcd,
+				ccbaAsno: item.ccbaAsno,
+				ccbaCtcd: item.ccbaCtcd,
+				imageUrl: image.imageUrl,
+				ccimDesc: image.ccimDesc
+			};
+			return searchedItem;
+		});
+
+		result = await Promise.all(fetchPromises);
 	} catch (error) {
 		console.error('[ccbaSearch] getCCbaItems error:', error);
 		throw new Error('Failed to fetch CCBA items');
@@ -120,7 +122,10 @@ function parseXMLToCcbaItemResponse(xml: string): CcbaItemResponse[] {
 	// XML 파싱 로직을 구현합니다.
 	const parser: XMLParser = new XMLParser();
 	const jsonDoc: CcbaItemAPIResponse = parser.parse(xml);
-	const items: CcbaItemResponse[] = jsonDoc.result.item;
+
+	const items: CcbaItemResponse[] = Array.isArray(jsonDoc.result.item)
+		? jsonDoc.result.item
+		: [jsonDoc.result.item];
 
 	for (const item of items) {
 		if (item.ccbaAsno.toString().length < ASNO_LENGTH) {
@@ -156,10 +161,11 @@ function parseXMLToCcbaItemImageResponse(xml: string): CcbaItemImageResponse {
 		return Array.isArray(value) ? value : [value];
 	}
 
-	let resSn = toArray(result.item.sn);
-	let resImageNuri = toArray(result.item.imageNuri);
-	let resImageUrl = toArray(result.item.imageUrl);
-	let resCcimDesc = toArray(result.item.ccimDesc);
+	const resSn = toArray(result.item.sn);
+	const resImageNuri = toArray(result.item.imageNuri);
+	const resImageUrl = toArray(result.item.imageUrl);
+	const resCcimDesc = toArray(result.item.ccimDesc);
+
 	const results: CcbaItemImageResponse = {
 		ccbaKdcd: result.ccbaKdcd || '',
 		ccbaAsno:

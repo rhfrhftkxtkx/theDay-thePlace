@@ -5,7 +5,7 @@ import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
 import type { LocationData, KtoApiResponse, KtoApiItem } from '$lib/mapTypes';
 
-const VISITKOREA_API_KEY = env.Tour_API_KEY;
+const VISITKOREA_API_KEY = env.OPEN_API_KEY;
 const VISITKOREA_API_URL = 'https://apis.data.go.kr/B551011/KorService2/areaBasedList2';
 
 export const GET: RequestHandler = async () => {
@@ -18,28 +18,14 @@ export const GET: RequestHandler = async () => {
 	try {
 		// 조회할 카테고리 목록 정의
 		const categories = [
-			{ type: 'museum', cat3: 'A02060100' },     // 박물관
-			{ type: 'memorial', cat3: 'A02060300' },   // 기념관
-			{ type: 'exhibition', cat3: 'A02060200' }  // 전시관
+			{ type: 'museum', cat3: 'A02060100' }, // 박물관
+			{ type: 'memorial', cat3: 'A02060300' }, // 기념관
+			{ type: 'exhibition', cat3: 'A02060200' } // 전시관
 		];
 
 		// 각 카테고리에 대한 API 요청을 Promise 배열로 생성
 		const fetchPromises = categories.map(async (category) => {
-			const queryParams = new URLSearchParams({
-				serviceKey: VISITKOREA_API_KEY,
-				pageNo: '1',
-				numOfRows: '10000',
-				MobileApp: 'TheDay_ThePlace',
-				MobileOS: 'ETC',
-				_type: 'json',
-				arrange: 'A',
-				//areaCode: '1', // 서울
-				cat1: 'A02',
-				cat2: 'A0206',
-				cat3: category.cat3
-			});
-
-			const requestUrl = `${VISITKOREA_API_URL}?${queryParams.toString()}`;
+			const requestUrl = `${VISITKOREA_API_URL}?serviceKey=${VISITKOREA_API_KEY}&numOfRows=10000&MobileApp=TheDay_ThePlace&MobileOS=ETC&_type=json&arrange=A&cat1=A02&cat2=A0206&cat3=${category.cat3}`;
 			const response = await fetch(requestUrl);
 
 			if (!response.ok) {
@@ -66,14 +52,13 @@ export const GET: RequestHandler = async () => {
 				// 성공한 요청의 결과(items 배열)를 allLocations에 추가
 				const itemsWithType = result.value;
 				const locations = itemsWithType.map((item: KtoApiItem & { type: string }) => ({
-				contentid: Number(item.contentid),
-				title: item.title,
-				mapx: item.mapx,
-				mapy: item.mapy,
-				type: item.type,
-				addr1: item.addr1,
-				overview: item.overview || null
-			}));
+					contentid: Number(item.contentid),
+					title: item.title,
+					mapx: item.mapx,
+					mapy: item.mapy,
+					type: item.type,
+					addr1: item.addr1
+				}));
 				allLocations = allLocations.concat(locations);
 			} else {
 				// 실패한 요청은 콘솔에 에러 기록
@@ -86,7 +71,6 @@ export const GET: RequestHandler = async () => {
 
 		console.log(`[+server.ts] TourAPI에서 가져온 총 데이터 ${allLocations.length}개`);
 		return json({ locations: allLocations, error: null }, { status: 200 });
-		
 	} catch (e) {
 		const message = e instanceof Error ? e.message : '알 수 없는 서버 오류 발생';
 		console.error('[+server.ts] API 라우트에서 예외 발생:', message);

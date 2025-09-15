@@ -154,6 +154,7 @@
           기본 정보
         </Tabs.Trigger>
         <Tabs.Trigger value="images" class="rounded-full">사진</Tabs.Trigger>
+        <!-- <Tabs.Trigger value="exhibitions" class="rounded-full">전시 정보</Tabs.Trigger> -->
       </Tabs.List>
       <Tabs.Content value="overview" class="mb-4">
         <Card.Root>
@@ -239,7 +240,7 @@
             <Card.Title>사진</Card.Title>
           </Card.Header>
           <Card.Content
-            class="mb-4 flex flex-col items-center justify-center px-15"
+            class="mb-4 flex flex-col items-center justify-center px-15 my-auto"
           >
             <!-- 현재 Sadcn/ui Carousel 컴포넌트가 탭 변경 시 Embla가 재렌더링되지 않는 문제가 있어
               탭 변경 시 key를 변경하여 강제 재렌더링 처리 -->
@@ -291,6 +292,16 @@
           </Card.Content>
         </Card.Root>
       </Tabs.Content>
+      <!-- <Tabs.Content value="exhibitions" class="mb-4">
+        <Card.Root>
+          <Card.Header>
+            <Card.Title>전시 정보</Card.Title>
+          </Card.Header>
+          <Card.Content class="mb-4">
+            <div class="p-4">No exhibition information available.</div>
+          </Card.Content>
+        </Card.Root>
+      </Tabs.Content> -->
     </Tabs.Root>
   </DetailPageLayout>
 {/if}
