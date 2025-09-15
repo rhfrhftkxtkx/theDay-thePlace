@@ -39,11 +39,11 @@
 				if (response.ok && result.overview) {
 					selectedLocation = { ...location, overview: result.overview };
 				} else {
-					selectedLocation = { ...location, overview: '상세 정보가 없습니다.' };
+					selectedLocation = { ...location, overview: '정보를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.' };
 				}
 			} catch (error) {
 				console.error('상세 정보 로딩 실패:', error);
-				selectedLocation = { ...location, overview: '상세 정보를 불러오는 데 실패했습니다.' };
+				selectedLocation = { ...location, overview: '서버와 통신할 수 없습니다. 네트워크 연결을 확인해 주세요.' };
 			}
 		}
 	}
@@ -124,6 +124,13 @@
 		}
 	}
 
+	function escapeHTML(str: string | null): string {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+	}
+
 	onMount(() => {
 		if (window.kakao && window.kakao.maps) {
 			window.kakao.maps.load(() => {
@@ -158,7 +165,8 @@
 										typeName = '전시관';
 										break;
 								}
-								const iwContent = `<div style="padding:5px;font-size:12px;text-align:center;min-width:120px;"><strong>${loc.title}</strong><br><span style="font-size:10px;color:gray;">(${typeName})</span></div>`;
+								const safeTitle = escapeHTML(loc.title);
+								const iwContent = `<div style="padding:5px;font-size:12px;text-align:center;min-width:120px;"><strong>${safeTitle}</strong><br><span style="font-size:10px;color:gray;">(${typeName})</span></div>`;
 								const infowindow = new window.kakao.maps.InfoWindow({
 									content: iwContent
 								});

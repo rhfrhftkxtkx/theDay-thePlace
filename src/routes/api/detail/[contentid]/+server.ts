@@ -39,7 +39,11 @@ export const GET: RequestHandler = async ({ params }) => {
 			throw new Error(apiResult.response?.header?.resultMsg || 'API가 상세 정보 조회에 실패했습니다.');
 		}
 
-		const item = apiResult.response.body.items.item[0];
+		const item = apiResult.response.body.items.item?.[0];
+		if (!item || !item.overview) {
+			// 에러 대신, 개요 정보가 없다는 정상적인 메시지를 보냅니다.
+			return json({ overview: '등록된 개요 정보가 없습니다.' }, { status: 200 });
+		}
 		// overview 정보만 추출하여 반환합니다.
 		return json({ overview: item.overview }, { status: 200 });
 		
