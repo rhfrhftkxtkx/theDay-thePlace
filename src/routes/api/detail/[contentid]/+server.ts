@@ -1,0 +1,50 @@
+// src/routes/api/detail/[contentid]/+server.ts
+
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { env } from '$env/dynamic/private';
+
+const VISITKOREA_API_KEY = env.Tour_API_KEY;
+// 상세 정보 조회를 위한 'detailCommon1' 오퍼레이션을 사용합니다.
+const VISITKOREA_DETAIL_URL = 'https://apis.data.go.kr/B551011/KorService2/detailCommon1';
+
+export const GET: RequestHandler = async ({ params }) => {
+	const { contentid } = params;
+
+	if (!VISITKOREA_API_KEY) {
+		return json({ error: '서버에 API 키가 설정되지 않았습니다.' }, { status: 500 });
+	}
+
+	try {
+		const queryParams = new URLSearchParams({
+			serviceKey: VISITKOREA_API_KEY,
+			MobileApp: 'TheDay_ThePlace',
+			MobileOS: 'ETC',
+			_type: 'json',
+			contentId: contentid,
+			// 개요 정보를 조회하기 위해 overviewYN을 Y로 설정합니다.
+			overviewYN: 'Y'
+		});
+
+		const requestUrl = `${VISITKOREA_DETAIL_URL}?${queryParams.toString()}`;
+		const response = await fetch(requestUrl);
+
+		if (!response.ok) {
+			throw new Error('API 서버에서 상세 정보 응답을 받지 못했습니다.');
+		}
+
+		const apiResult = await response.json();
+
+		if (apiResult.response?.header?.resultCode !== '0000') {
+			throw new Error(apiResult.response?.header?.resultMsg || 'API가 상세 정보 조회에 실패했습니다.');
+		}
+
+		const item = apiResult.response.body.items.item[0];
+		// overview 정보만 추출하여 반환합니다.
+		return json({ overview: item.overview }, { status: 200 });
+		
+	} catch (e) {
+		const message = e instanceof Error ? e.message : '상세 정보 조회 중 오류 발생';
+		return json({ error: message }, { status: 500 });
+	}
+};
