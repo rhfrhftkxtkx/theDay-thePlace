@@ -20,7 +20,7 @@
     <h1 class="flex-1">상세검색</h1>
     <div class="absolute right-4">
       <!-- 테마 전환 버튼 -->
-      <ThemeButton />
+      <!-- <ThemeButton /> -->
     </div>
   </div>
 </header>
