@@ -48,5 +48,4 @@ export interface LocationData {
 export interface PageData {
     locations: LocationData[];
     error: string | null;
-    // 이 부분은 현재 사용되지 않으므로, 원한다면 삭제해도 됩니다.
 }
