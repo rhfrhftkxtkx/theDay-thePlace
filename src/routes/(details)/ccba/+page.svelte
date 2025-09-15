@@ -221,7 +221,7 @@
                       <Carousel.Item class="md:basis-1/2 lg:basis-1/3 p-2">
                         <Card.Root class="h-full">
                           <Card.Content
-                            class="flex aspect-square items-center justify-center p-6 flex-col"
+                            class="flex aspect-square items-center justify-center p-6 flex-col my-auto"
                           >
                             <img
                               src={img.imageUrl}
