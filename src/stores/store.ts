@@ -1,10 +1,13 @@
 import { writable } from 'svelte/store';
-import khsCategoryData from '$data/khsCategories.json';
-import visitKorAreaData from '$data/visitKorAreaCode2.json';
-import type { Category, SearchedCcbaItem, SearchedMuseumItem } from '$lib/searchTypes';
+import type { Category, SearchedCcbaItem, SearchedMuseumItem } from '$/types/search.types';
 
-export const ccbaList: Category[] = khsCategoryData;
-export const visitKorAreaCode2: Category[] = visitKorAreaData;
+// export const ccbaList: Category[] = await fetch('/api/khs/categories').then((res) => res.json());
+// export const visitKorAreaCode2: Category[] = await fetch('/api/visitKor/areaCode').then((res) =>
+// 	res.json()
+// );
+
+export const ccbaList = writable<Category[]>([]);
+export const visitKorAreaCode2 = writable<Category[]>([]);
 
 export const searchFilter = writable<Category[]>([]);
 export const searchKeyword = writable<string>('');
