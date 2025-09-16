@@ -275,14 +275,6 @@
 					}
 				});
 
-        // 컴포넌트가 사라질 때 이벤트 리스너 제거
-        onDestroy(() => {
-	      if (mapClickListener && window.kakao && window.kakao.maps && map) {
-		    window.kakao.maps.event.removeListener(map, 'click', handleMapClick);
-		    window.kakao.maps.event.removeListener(map, 'zoom_changed', () => {});
-	      }
-      });
-
           // 지도를 다시 렌더링할 때 약간의 지연으로 안정성 확보
           setTimeout(() => {
             if (map && map.relayout) map.relayout();
@@ -300,12 +292,13 @@
     }
   });
 
-  // onMount 안에서 등록되지 않은 리스너가 있을 경우를 대비해 한번 더 정리
+  // 컴포넌트가 닫힐 때 이벤트 리스너 제거
   onDestroy(() => {
-    if (mapClickListener && window.kakao && window.kakao.maps && map) {
-      window.kakao.maps.event.removeListener(map, 'click', handleMapClick);
-    }
-  });
+	if (mapClickListener && window.kakao && window.kakao.maps && map) {
+		window.kakao.maps.event.removeListener(map, 'click', handleMapClick);
+		window.kakao.maps.event.removeListener(map, 'zoom_changed', () => {});
+	}
+});
 </script>
 
 <div class="w-screen h-screen flex flex-col">
