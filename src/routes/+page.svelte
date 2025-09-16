@@ -4,7 +4,6 @@
   import type { PageData, LocationData } from '$lib/mapTypes';
   // import OffcanvasTab from '$components/ui/OffcanvasTab.svelte';
   import * as Drawer from '$lib/components/ui/drawer';
-
   import HamburgerButton from '$components/ui/HamburgerButton.svelte';
   import SideMenu from '$components/features/SideMenu.svelte';
   import Fa from 'svelte-fa';
@@ -17,43 +16,51 @@
 
   const { data }: Props = $props();
 
+  // 지도 초기 포커스 (국립중앙박물관)
   const NATIONAL_MUSEUM_OF_KOREA_LAT = 37.5238506;
   const NATIONAL_MUSEUM_OF_KOREA_LNG = 126.9804702;
 
-  let isSideMenuOpen = $state(false);
-  let isBottomSheetOpen = $state(false);
+  // --- 상태 변수 ---
+  let isSideMenuOpen = $state(false); // 사이드 메뉴 열림 여부 default: 닫힘
+  let isBottomSheetOpen = $state(false); // 하단 시트 열림 여부 default: 닫힘
+  let selectedLocation: LocationData | null = $state(null); // 선택한 위치(마커) 정보
+  let searchQuery: string = $state(''); // 검색어
+  let searchResultItems: LocationData[] = $state([]); // 검색 결과 목록
+  let isSearchResultsPanelVisible = $state(false); // 검색 결과 패널 표시 여부
+  let isSearchActive = $state(false); // 검색 중인지 여부
 
-  let mapContainer: HTMLDivElement;
-  let map: any;
-  let currentDbMarkers: Array<{
+  // --- 일반 변수 ---
+  let mapContainer: HTMLDivElement; // 지도가 그려질 HTML 요소를 담을 변수
+  let map: any; // kakao.maps.Map 객체
+  let currentMarkers: Array<{
     locationData: LocationData;
     marker: any;
     infowindow: any;
-  }> = [];
-  let mapClickListener: any = null;
-  let selectedLocation: LocationData | null = $state(null);
-  let searchQuery: string = $state('');
-  let searchResultItems: LocationData[] = $state([]);
-  let isSearchResultsPanelVisible = $state(false);
+  }> = []; // 현재 지도에 표시된 모든 마커와 관련 데이터가 담긴 배열
+  let mapClickListener: any = null; // 지도 클릭 이벤트를 나중에 제거하기 위한 변수
 
+  // --- 함수 ---
+  // 위치(마커) 클릭 시 하단 시트 여는 함수 
   async function openBottomSheet(location: LocationData): Promise<void> {
-    selectedLocation = location;
-    isBottomSheetOpen = true;
+    selectedLocation = location; // 클릭된 위치 정보를 상태 변수에 저장
+    isBottomSheetOpen = true; // 하단 시트 열기
 
+    // 상세 정보(overview)가 없으면 API 호출하여 불러오기
     if (!location.overview) {
       try {
         const response = await fetch(`/api/detail/${location.contentid}`);
         const result = await response.json();
         if (response.ok && result.overview) {
+          // 상세 정보가 정상적으로 로딩된 경우 상태 변수 업데이트
           selectedLocation = { ...location, overview: result.overview };
-        } else {
+        } else { // 상세 정보 로딩 실패 시 기본 메시지 설정
           selectedLocation = {
             ...location,
             overview:
               '정보를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
           };
         }
-      } catch (error) {
+      } catch (error) { // 네트워크 오류 등 fetch 실패 시 기본 메시지 설정
         console.error('상세 정보 로딩 실패:', error);
         selectedLocation = {
           ...location,
@@ -63,17 +70,19 @@
     }
   }
 
+  // 하단 시트 닫는 함수
   function closeBottomSheet(): void {
     isBottomSheetOpen = false;
     selectedLocation = null;
   }
 
-  function setDbMarkersVisibility(
+  // 마커 표시/숨기기 함수
+  function setMarkersVisibility(
     visible: boolean,
     options?: { filterIds?: Set<number> }
   ): void {
     const filterIds = options?.filterIds;
-    currentDbMarkers.forEach((item) => {
+    currentMarkers.forEach((item) => {
       let shouldBeVisible = visible;
       if (visible && filterIds && filterIds.size > 0) {
         shouldBeVisible = filterIds.has(item.locationData.contentid);
@@ -83,53 +92,66 @@
     });
   }
 
-  function clearSearchResultsAndShowAllDbMarkers(): void {
+  // 검색 결과 초기화 및 모든 마커 다시 표시 함수
+  function clearSearchResultsAndShowAllMarkers(): void {
+    isSearchActive = false;
     isSearchResultsPanelVisible = false;
     searchResultItems = [];
     searchQuery = '';
     if (isBottomSheetOpen) closeBottomSheet();
-    setDbMarkersVisibility(true);
+    setMarkersVisibility(true);
+    // 검색 종료 후 모든 마커를 재 생성할 때 줌 레벨이 9보다 크면 마커 숨기기
+    if (map) {
+		const currentLevel = map.getLevel();
+		if (currentLevel > 9) {
+			setMarkersVisibility(false);
+		}
+	}
   }
 
+  // 지도 클릭 시 동작 처리 함수
   function handleMapClick(): void {
     if (isBottomSheetOpen) {
       closeBottomSheet();
     } else if (isSearchResultsPanelVisible || searchResultItems.length > 0) {
-      clearSearchResultsAndShowAllDbMarkers();
+      clearSearchResultsAndShowAllMarkers();
     }
   }
 
+  // 검색 폼 제출 시 동작 처리 함수
   async function handleSearch(event: Event): Promise<void> {
     event.preventDefault();
     const query = searchQuery.toLowerCase().trim();
     if (!query) {
-      clearSearchResultsAndShowAllDbMarkers();
+      clearSearchResultsAndShowAllMarkers();
       return;
     }
-
     closeBottomSheet();
     isSearchResultsPanelVisible = false;
     searchResultItems = [];
-    const filteredDbLocations = (data.locations || []).filter(
+    // 전체 장소 데이터 중 검색어와 일치하는 항목 필터링
+    const filteredLocations = (data.locations || []).filter(
       (loc) =>
-        loc.title?.toLowerCase().includes(query) ||
-        loc.addr1?.toLowerCase().includes(query) ||
-        loc.overview?.toLowerCase().includes(query)
+        loc.title?.toLowerCase().includes(query) || // 제목
+        loc.addr1?.toLowerCase().includes(query) || // 주소
+        loc.overview?.toLowerCase().includes(query) // 개요
     );
 
-    if (filteredDbLocations.length > 0) {
-      searchResultItems = filteredDbLocations;
-      isSearchResultsPanelVisible = true;
+    if (filteredLocations.length > 0) {
+      isSearchActive = true; // 검색 중 상태로 변경
+      searchResultItems = filteredLocations; // 필터링 된 결과를 상태 변수에 저장
+      isSearchResultsPanelVisible = true; // 검색 결과 패널 표시
       const filteredContentIds = new Set(
-        filteredDbLocations.map((loc) => loc.contentid)
+        filteredLocations.map((loc) => loc.contentid)
       );
-      setDbMarkersVisibility(true, { filterIds: filteredContentIds });
+      setMarkersVisibility(true, { filterIds: filteredContentIds }); // 필터링 된 마커만 지도에 표시
 
+      // 필터링 된 검색 결과 마커가 모두 보이도록 지도 중심과 줌 레벨 조정
       const bounds = new window.kakao.maps.LatLngBounds();
       let visibleMarkersForBounds = 0;
-      currentDbMarkers.forEach((dbItem) => {
-        if (dbItem.marker.getMap()) {
-          bounds.extend(dbItem.marker.getPosition());
+      currentMarkers.forEach((Item) => {
+        if (Item.marker.getMap()) {
+          bounds.extend(Item.marker.getPosition());
           visibleMarkersForBounds++;
         }
       });
@@ -143,10 +165,11 @@
       }
     } else {
       alert('검색된 장소가 없습니다.');
-      setDbMarkersVisibility(false);
+      setMarkersVisibility(false);
     }
   }
 
+  // HTML 특수문자 이스케이프 처리 함수
   function escapeHTML(str: string | null): string {
     if (!str) return '';
     const div = document.createElement('div');
@@ -154,7 +177,11 @@
     return div.innerHTML;
   }
 
-  onMount(() => {
+  // --- 생명주기(Lifecycle) 함수 ---
+  
+  // kakao 지도 생성 및 KTO 마커 표시
+  onMount(() => { 
+    // Kakao Maps SDK가 로드된 후 지도 생성
     if (window.kakao && window.kakao.maps) {
       window.kakao.maps.load(() => {
         const mapOptions = {
@@ -165,6 +192,7 @@
           level: 7,
         };
         try {
+          // 지도 생성 및 클릭 이벤트 리스너 등록
           map = new window.kakao.maps.Map(mapContainer, mapOptions);
           mapClickListener = window.kakao.maps.event.addListener(
             map,
@@ -172,6 +200,7 @@
             handleMapClick
           );
 
+          // 장소 데이터가 있으면 마커 생성
           if (
             map &&
             data &&
@@ -179,7 +208,7 @@
             data.locations &&
             data.locations.length > 0
           ) {
-            currentDbMarkers = [];
+            currentMarkers = [];
             data.locations.forEach((loc) => {
               const lat = loc.mapy ? parseFloat(loc.mapy) : NaN;
               const lng = loc.mapx ? parseFloat(loc.mapx) : NaN;
@@ -190,7 +219,7 @@
                   map: map,
                 });
                 let typeName = '장소';
-                switch (loc.type) {
+                switch (loc.type) { // type에 따른 한글명 매핑
                   case 'museum':
                     typeName = '박물관';
                     break;
@@ -206,6 +235,8 @@
                 const infowindow = new window.kakao.maps.InfoWindow({
                   content: iwContent,
                 });
+
+                // 마커에 마우스오버/아웃 및 클릭 이벤트 리스너 등록
                 window.kakao.maps.event.addListener(marker, 'mouseover', () => {
                   infowindow.open(map, marker);
                 });
@@ -215,12 +246,13 @@
                 window.kakao.maps.event.addListener(marker, 'click', () => {
                   openBottomSheet(loc);
                 });
-                currentDbMarkers.push({
+                currentMarkers.push({
                   marker,
                   infowindow,
                   locationData: loc,
                 });
-              } else {
+              }
+               else {
                 console.warn(
                   `[${
                     loc.title || '제목 없음'
@@ -230,12 +262,34 @@
             });
           }
 
+          // 지도의 줌 레벨 변경될 때마다 실행될 이벤트 리스너 등록
+          window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
+          // 검색 중이 아닌 경우, 줌 레벨이 9보다 크면 마커 숨기기
+					if (!isSearchActive) {
+		        const currentLevel = map.getLevel();
+						if (currentLevel > 9) {
+							setMarkersVisibility(false);
+						} else {
+							setMarkersVisibility(true);
+						}
+					}
+				});
+
+        // 컴포넌트가 사라질 때 이벤트 리스너 제거
+        onDestroy(() => {
+	      if (mapClickListener && window.kakao && window.kakao.maps && map) {
+		    window.kakao.maps.event.removeListener(map, 'click', handleMapClick);
+		    window.kakao.maps.event.removeListener(map, 'zoom_changed', () => {});
+	      }
+      });
+
+          // 지도를 다시 렌더링할 때 약간의 지연으로 안정성 확보
           setTimeout(() => {
             if (map && map.relayout) map.relayout();
           }, 100);
         } catch (mapInitError: unknown) {
           console.error(
-            '(+page.svelte) 지도 또는 DB 마커 처리 중 에러 발생:',
+            '(+page.svelte) 지도 또는 마커 처리 중 에러 발생:',
             mapInitError
           );
         }
@@ -246,6 +300,7 @@
     }
   });
 
+  // onMount 안에서 등록되지 않은 리스너가 있을 경우를 대비해 한번 더 정리
   onDestroy(() => {
     if (mapClickListener && window.kakao && window.kakao.maps && map) {
       window.kakao.maps.event.removeListener(map, 'click', handleMapClick);
@@ -316,7 +371,7 @@
           </h4>
           <button
             class="text-2xl text-gray-500 hover:text-gray-800"
-            onclick={clearSearchResultsAndShowAllDbMarkers}
+            onclick={clearSearchResultsAndShowAllMarkers}
             aria-label="검색 결과 닫기"
           >
             &times;

@@ -1,16 +1,15 @@
-// src/routes/api/detail/[contentid]/+server.ts
-
+// 마커 클릭 시 상세 정보를 가져오는 서버 엔드포인트
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
 import type { VisitKorDetailCommon2Response, VisitKorDetailItem } from '$/types/detail.types';
 
 const VISITKOREA_API_KEY: string | undefined = env.OPEN_API_KEY;
-// 상세 정보 조회를 위한 'detailCommon1' 오퍼레이션을 사용합니다.
+// TourAPI의 기능 중 '상세 정보 조회 v2'를 위한 고정 주소
 const VISITKOREA_DETAIL_URL = 'https://apis.data.go.kr/B551011/KorService2/detailCommon2';
 
 export const GET: RequestHandler = async ({ params }) => {
-	const { contentid } = params;
+	const { contentid } = params; // URL 동적 경로에서 contentid 추출
 
 	// console.log(`[detail server] Fetching details for contentId: ${contentid}`);
 	// console.log(`Using API Key: ${VISITKOREA_API_KEY ? 'Provided' : 'Not Provided'}`);
@@ -34,6 +33,7 @@ export const GET: RequestHandler = async ({ params }) => {
 			throw new Error(apiResult!.header?.resultMsg || 'API가 상세 정보 조회에 실패했습니다.');
 		}
 
+		// 응답에서 첫 번째 아이템(상세 정보) 추출
 		const item: VisitKorDetailItem = apiResult.body.items.item[0];
 		if (!item || !item.overview) {
 			// 에러 대신, 개요 정보가 없다는 정상적인 메시지를 보냅니다.
