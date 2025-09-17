@@ -30,7 +30,7 @@ export async function museumItemSearch(
 	let result: SearchedMuseumItem[] = [];
 
 	const apiType = Keyword === '' || !Keyword ? 'areaBasedSyncList2' : 'searchKeyword2';
-	const cat3List = ['A20260100', 'A02060200', 'A02060300'];
+	const cat3List = ['A02060100', 'A02060200', 'A02060300'];
 	const fetchPromises = [];
 	if (isInvalidFilter) {
 		fetchPromises.push(

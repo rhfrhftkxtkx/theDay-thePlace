@@ -123,6 +123,10 @@ function parseXMLToCcbaItemResponse(xml: string): CcbaItemResponse[] {
 	const parser: XMLParser = new XMLParser();
 	const jsonDoc: CcbaItemAPIResponse = parser.parse(xml);
 
+	if (jsonDoc.result.totalCnt === 0) {
+		return [];
+	}
+
 	const items: CcbaItemResponse[] = Array.isArray(jsonDoc.result.item)
 		? jsonDoc.result.item
 		: [jsonDoc.result.item];
