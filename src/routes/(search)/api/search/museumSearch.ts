@@ -35,13 +35,6 @@ export async function museumItemSearch(
 	if (isInvalidFilter) {
 		fetchPromises.push(
 			...cat3List.map(async (cat3) => {
-				console.log(
-					`${VISITKOREA_API_URL}/${apiType}?serviceKey=${
-						API_KEY
-					}&MobileOS=WEB&MobileApp=TheDay_ThePlace&cat1=A02&cat2=A0206&cat3=${cat3}&_type=json&${
-						apiType === 'searchKeyword2' ? `keyword=${encodeURIComponent(Keyword)}` : ''
-					}&numOfRows=10&pageNo=${pageNo}`
-				);
 				const response = await fetch(
 					`${VISITKOREA_API_URL}/${apiType}?serviceKey=${
 						API_KEY
