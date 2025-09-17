@@ -1,22 +1,23 @@
-// src/routes/login/+page.server.ts
 import { fail, redirect } from '@sveltejs/kit';
-import { supabase } from '$lib/supabaseClient';
+import type { Actions } from './$types';
 
-export const actions = {
-	default: async ({ request }) => {
-		const formData = await request.formData();
-		const email = formData.get('email') as string;
-		const password = formData.get('password') as string;
+export const actions: Actions = {
+    default: async ({ request, locals }) => {
+        const formData = await request.formData();
+        const email = (formData.get('email') as string).trim();
+        const password = (formData.get('password') as string).trim();
 
-		const { error } = await supabase.auth.signInWithPassword({
-			email: email,
-			password: password
-		});
+        const { error } = await locals.supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
 
-		if (error) {
-			return fail(401, { error: '로그인 정보가 올바르지 않습니다.' });
-		}
+        if (error) {
+            console.error('로그인 오류:', error);
+            return fail(401, { error: '로그인 정보가 올바르지 않습니다.' });
+        }
 
-		throw redirect(303, '/');
-	}
+        // 로그인 성공 시 리디렉션
+        throw redirect(303, '/');
+    }
 };

@@ -1,7 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
-import { env } from '$env/dynamic/public'
+import { createClient } from '@supabase/supabase-js';
 
 export const supabase = createClient(
-    env.PUBLIC_VITE_SUPABASE_URL,
-    env.PUBLIC_VITE_SUPABASE_ANON_KEY
-)
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY
+);

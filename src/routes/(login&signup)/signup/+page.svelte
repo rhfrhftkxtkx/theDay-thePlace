@@ -8,7 +8,7 @@
 <div class="relative flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
 	<button
 		type="button"
-		on:click={() => history.back()}
+		onclick={() => history.back()}
 		class="absolute top-6 left-6 p-3 text-gray-500 dark:text-gray-400 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
 		aria-label="뒤로가기"
 	>

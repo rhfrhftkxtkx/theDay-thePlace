@@ -326,7 +326,7 @@
   <main class="flex-grow relative">
     <div bind:this={mapContainer} class="w-full h-full"></div>
 
-    <SideMenu bind:isOpen={isSideMenuOpen} />
+    <SideMenu bind:isOpen={isSideMenuOpen} session={data.session} />
 
     {#if data}
       {#if data.error}
