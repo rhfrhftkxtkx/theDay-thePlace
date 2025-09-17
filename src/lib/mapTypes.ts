@@ -1,4 +1,4 @@
-// src/lib/mapTypes.ts
+import type { Session } from '@supabase/supabase-js';
 
 // --- API 관련 타입들 ---
 
@@ -46,4 +46,5 @@ export interface LocationData {
 export interface PageData {
 	locations: LocationData[];
 	error: string | null;
+	session: Session | null;
 }
