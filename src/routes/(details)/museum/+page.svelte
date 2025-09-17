@@ -26,11 +26,18 @@
   );
   let museumImg = $state<VisitKorImageItem[] | null>(data.museumImg || null);
   let cat = $state<string | null>(data.catName || null);
+  let exhibitionList = $state(data.exhibitionList || null);
 
   // carousel api
   let carouselApi = $state<CarouselAPI>();
   let current = $state(0);
   const count = $derived(carouselApi?.scrollSnapList().length || 0);
+
+  let exhibitCarouselApi = $state<CarouselAPI>();
+  let exhibitCurrent = $state(0);
+  const exhibitCount = $derived(
+    exhibitCarouselApi?.scrollSnapList().length || 0
+  );
 
   // 현재 shadcn/ui Carousel 컴포넌트가 탭 변경 시 Embla가 재렌더링되지 않는 문제가 있어
   // 탭 변경 시 key를 변경하여 강제 재렌더링 처리
@@ -53,6 +60,13 @@
       current = carouselApi.selectedScrollSnap() + 1;
       carouselApi.on('select', () => {
         current = carouselApi!.selectedScrollSnap() + 1;
+      });
+    }
+
+    if (exhibitCarouselApi) {
+      exhibitCurrent = exhibitCarouselApi.selectedScrollSnap() + 1;
+      exhibitCarouselApi.on('select', () => {
+        exhibitCurrent = exhibitCarouselApi!.selectedScrollSnap() + 1;
       });
     }
   });
@@ -148,13 +162,15 @@
       onValueChange={tabActivateChange}
     >
       <Tabs.List
-        class="grid w-full grid-cols-2 bg-neutral-300 dark:bg-neutral-900 px-1 py-1/2 rounded-full"
+        class="grid w-full grid-cols-3 bg-neutral-300 dark:bg-neutral-900 px-1 py-1/2 rounded-full"
       >
         <Tabs.Trigger value="overview" class="rounded-full">
           기본 정보
         </Tabs.Trigger>
         <Tabs.Trigger value="images" class="rounded-full">사진</Tabs.Trigger>
-        <!-- <Tabs.Trigger value="exhibitions" class="rounded-full">전시 정보</Tabs.Trigger> -->
+        <Tabs.Trigger value="exhibitions" class="rounded-full">
+          전시 정보
+        </Tabs.Trigger>
       </Tabs.List>
       <Tabs.Content value="overview" class="mb-4">
         <Card.Root>
@@ -234,6 +250,8 @@
           </Card.Content>
         </Card.Root>
       </Tabs.Content>
+
+      <!-- 사진 -->
       <Tabs.Content value="images" class="mb-4">
         <Card.Root>
           <Card.Header>
@@ -292,16 +310,68 @@
           </Card.Content>
         </Card.Root>
       </Tabs.Content>
-      <!-- <Tabs.Content value="exhibitions" class="mb-4">
+
+      <!-- 전시 정보 -->
+      <Tabs.Content value="exhibitions" class="mb-4">
         <Card.Root>
           <Card.Header>
             <Card.Title>전시 정보</Card.Title>
           </Card.Header>
-          <Card.Content class="mb-4">
-            <div class="p-4">No exhibition information available.</div>
+          <Card.Content
+            class="mb-4 flex flex-col items-center justify-center px-15 my-auto"
+          >
+            {#key tabValue}
+              <Carousel.Root
+                orientation="horizontal"
+                class="w-full h-full"
+                setApi={(emblaApi) => (exhibitCarouselApi = emblaApi)}
+                plugins={[]}
+                opts={{
+                  loop: false,
+                  align: 'center',
+                }}
+              >
+                <Carousel.Content class="">
+                  {#if exhibitionList && exhibitionList.length > 0}
+                    {#each exhibitionList as exhibit (exhibit.exhibition_id)}
+                      <Carousel.Item
+                        class="md:basis-1/2 lg:basis-1/3 p-2 hover:opacity-80 transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl ease-in-out"
+                      >
+                        <Card.Root class="h-full">
+                          <Card.Content
+                            class="flex aspect-square items-center justify-center p-6 flex-col cursor-pointer"
+                            onclick={() =>
+                              window.open(exhibit.source_url, '_blank')}
+                          >
+                            <img
+                              src={exhibit.image_url}
+                              alt={exhibit.title}
+                              class="max-h-full max-w-full object-contain"
+                            />
+                            <div class="mt-2 text-center">
+                              <h3 class="font-medium">{exhibit.title}</h3>
+                              <p class="text-sm text-muted-foreground">
+                                {exhibit.start_date} ~ {exhibit.end_date}
+                              </p>
+                            </div>
+                          </Card.Content>
+                        </Card.Root>
+                      </Carousel.Item>
+                    {/each}
+                  {:else}
+                    <div class="p-4">전시 정보가 없습니다.</div>
+                  {/if}
+                </Carousel.Content>
+                <Carousel.Previous />
+                <Carousel.Next />
+              </Carousel.Root>
+            {/key}
+            <div class="mt-2 text-sm text-muted-foreground md:hidden">
+              {current} / {count}
+            </div>
           </Card.Content>
         </Card.Root>
-      </Tabs.Content> -->
+      </Tabs.Content>
     </Tabs.Root>
   </DetailPageLayout>
 {/if}
