@@ -9,6 +9,7 @@ import type {
 } from '$/types/detail.types';
 import { env } from '$env/dynamic/private';
 import type { PageServerLoad } from './$types';
+import { getExhibitionList } from './exhibition';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const VISITKOR_DETAIL_API_URL: string =
@@ -179,12 +180,15 @@ export const load: PageServerLoad = async ({ url }) => {
 		};
 	}
 
+	const exhibitionList = await getExhibitionList(contentId);
+
 	return {
 		result: 200,
 		museumDetails,
 		museumIntro,
 		museumImg,
 		catName,
+		exhibitionList,
 		error: null
 	};
 };
