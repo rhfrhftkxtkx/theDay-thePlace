@@ -46,6 +46,7 @@
 	"dependencies": {
 		"@fortawesome/free-brands-svg-icons": "^6.7.2",
 		"@fortawesome/free-solid-svg-icons": "^6.7.2",
+		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.49.8",
 		"@sveltejs/adapter-netlify": "^5.0.2",
 		"fast-xml-parser": "^5.2.3",
