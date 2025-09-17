@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { env } from '$env/dynamic/private';
 
 // 디버깅을 위해 env 변수를 직접 출력해봅니다.
-console.log('서버 환경 변수:', env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
 const supabaseUrl = env.SUPABASE_URL;
 const supabaseKey = env.SUPABASE_ANON_KEY;
