@@ -367,7 +367,7 @@
               </Carousel.Root>
             {/key}
             <div class="mt-2 text-sm text-muted-foreground md:hidden">
-              {current} / {count}
+              {exhibitCurrent} / {exhibitCount}
             </div>
           </Card.Content>
         </Card.Root>
