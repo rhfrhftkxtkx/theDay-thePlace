@@ -6,7 +6,7 @@
 	import * as Drawer from '$lib/components/ui/drawer';
 	import HamburgerButton from '$components/ui/HamburgerButton.svelte';
 	import SideMenu from '$components/features/SideMenu.svelte';
-	import Fa from 'svelte-fa';
+	import StarIcon from '$/lib/components/ui/StarIcon.svelte';
 	import TextCollapse from '$/components/ui/TextCollapse.svelte';
 	import { enhance } from '$app/forms'; // use:enhance를 위해 추가
 
@@ -391,72 +391,84 @@
 		{/if}
 
 		<Drawer.Root bind:open={isBottomSheetOpen}>
-			<Drawer.Content>
-				<div
-					class="flex justify-between items-center py-3 px-4 border-b border-neutral-300 dark:border-neutral-600"
-				>
-					<span class="bg-none p-2 text-xl">&nbsp;</span>
-					<h3 class="items-center text-xl justify-center text-center font-bold">
-						{selectedLocation?.title || '상세 정보'}
-					</h3>
-					<button
-						class="bg-none text-xl p-2 cursor-pointer hover:bg-neutral-400 dark:hover:bg-neutral-500 rounded-full transition-colors duration-300 ease-in-out"
-						onclick={() => (isBottomSheetOpen = false)}
-						aria-label="Close offcanvas"
-					>
-						<div class="w-6 h-6 items-center flex justify-center">
-							<div class="sr-only">Close</div>
-						</div>
-					</button>
-				</div>
-				<div class="grow">
-					<div class="p-5 h-full overflow-y-auto">
-						{#if selectedLocation}
-							{#if data.session}
-								<form
-									method="POST"
-									action="?/addFavorite"
-									use:enhance={() => {
-										return ({ result }) => {
-											if (result.type === 'success' && result.data?.message) {
-												alert(result.data.message);
-											} else if (result.type === 'failure' && result.data?.message) {
-												alert(result.data.message);
-											}
-										};
-									}}
-									class="mb-4"
-								>
-									<input type="hidden" name="locationId" value={selectedLocation.contentid} />
-									<input type="hidden" name="title" value={selectedLocation.title} />
-									<input type="hidden" name="addr1" value={selectedLocation.addr1} />
-									<button
-										type="submit"
-										class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
-									>
-										<span>즐겨찾기 추가</span>
-									</button>
-								</form>
-							{/if}
+    <Drawer.Content>
+        {#if selectedLocation}
+            {#if data.session}
+                <form
+                    method="POST"
+                    action="?/addFavorite"
+                    use:enhance={() => {
+                        return ({ result }) => {
+                            if (result.type === 'success' && result.data?.message) {
+                                alert(result.data.message);
+                            } else if (result.type === 'failure' && result.data?.error) {
+                                alert(result.data.error); // 서버에서 error로 보낸 메시지를 받도록 수정
+                            }
+                        };
+                    }}
+                >
+                    <div
+                        class="flex justify-between items-center py-3 px-4 border-b border-neutral-300 dark:border-neutral-600"
+                    >
+                        <span class="w-8">&nbsp;</span>
+                        <h3 class="items-center text-xl justify-center text-center font-bold">
+                            {selectedLocation?.title || '상세 정보'}
+                        </h3>
+                        
+                        <button
+                            type="submit"
+                            class="w-auto flex items-center justify-center gap-1 px-2 py-1 bg-yellow-500 text-white text-sm rounded-lg hover:bg-yellow-600 transition-colors"
+                        >
+                            <StarIcon solid={true} class="w-4 h-4" />
+                        </button>
+                    </div>
 
-							{#if form?.message}
-								<p class="text-center text-sm mb-4 text-green-500">{form.message}</p>
-							{/if}
-							{#if form?.error}
-								<p class="text-center text-sm mb-4 text-red-500">{form.error}</p>
-							{/if}
-							<p class="text-base text-center leading-relaxed">
-								{#if selectedLocation.overview}
-									<TextCollapse text={selectedLocation.overview} />
-								{:else}
-									정보를 불러오는 중...
-								{/if}
-							</p>
-						{/if}
-					</div>
-				</div>
-			</Drawer.Content>
-		</Drawer.Root>
+                    <div class="grow">
+                        <div class="p-5 h-full overflow-y-auto">
+                            <input type="hidden" name="locationId" value={selectedLocation.contentid} />
+                            <input type="hidden" name="title" value={selectedLocation.title} />
+                            <input type="hidden" name="addr1" value={selectedLocation.addr1} />
+
+                            {#if form?.message}
+                                <p class="text-center text-sm mb-4 text-green-500">{form.message}</p>
+                            {/if}
+                            {#if form?.error}
+                                <p class="text-center text-sm mb-4 text-red-500">{form.error}</p>
+                            {/if}
+
+                            <p class="text-base text-center leading-relaxed">
+                                {#if selectedLocation.overview}
+                                    <TextCollapse text={selectedLocation.overview} />
+                                {:else}
+                                    정보를 불러오는 중...
+                                {/if}
+                            </p>
+                        </div>
+                    </div>
+                </form> {:else}
+                <div
+                    class="flex justify-between items-center py-3 px-4 border-b border-neutral-300 dark:border-neutral-600"
+                >
+                    <span class="w-8">&nbsp;</span>
+                    <h3 class="items-center text-xl justify-center text-center font-bold">
+                        {selectedLocation?.title || '상세 정보'}
+                    </h3>
+                    <span class="w-8">&nbsp;</span> </div>
+                <div class="grow">
+                    <div class="p-5 h-full overflow-y-auto">
+                         <p class="text-base text-center leading-relaxed">
+                            {#if selectedLocation.overview}
+                                <TextCollapse text={selectedLocation.overview} />
+                            {:else}
+                                정보를 불러오는 중...
+                            {/if}
+                        </p>
+                    </div>
+                </div>
+            {/if}
+        {/if}
+    </Drawer.Content>
+</Drawer.Root>
 
 		</main>
 </div>

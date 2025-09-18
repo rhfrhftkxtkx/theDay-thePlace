@@ -1,4 +1,3 @@
-// src/routes/favorites/+page.server.ts
 import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -24,7 +23,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return { favorites };
 };
 
-// --- ▼▼▼ 즐겨찾기 삭제 action 추가 ▼▼▼ ---
 export const actions: Actions = {
 	deleteFavorite: async ({ request, locals }) => {
 		const session = await locals.getSession();

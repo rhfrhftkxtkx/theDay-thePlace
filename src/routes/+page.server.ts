@@ -29,7 +29,7 @@ export const actions: Actions = {
 		if (error) {
 			// UNIQUE 제약 조건 위반 (이미 추가된 항목) 에러 처리
 			if (error.code === '23505') {
-				return fail(409, { message: '이미 즐겨찾기에 추가된 장소입니다.' });
+				return fail(409, { error: '이미 즐겨찾기에 추가된 장소입니다.' });
 			}
 			console.error('즐겨찾기 추가 오류:', error);
 			return fail(500, { error: '즐겨찾기 추가에 실패했습니다.' });
