@@ -348,7 +348,7 @@
                               alt={exhibit.title}
                               class="max-h-full max-w-full object-contain"
                             />
-                            <div class="mt-2 text-center">
+                            <div class="mt-2 text-center text-pretty">
                               <h3 class="font-medium">{exhibit.title}</h3>
                               <p class="text-sm text-muted-foreground">
                                 {exhibit.start_date} ~ {exhibit.end_date}
@@ -359,7 +359,9 @@
                       </Carousel.Item>
                     {/each}
                   {:else}
-                    <div class="p-4">전시 정보가 없습니다.</div>
+                    <div class="p-4 text-pretty">
+                      진행 중이거나 진행 예정인 전시정보가 없습니다.
+                    </div>
                   {/if}
                 </Carousel.Content>
                 <Carousel.Previous />
