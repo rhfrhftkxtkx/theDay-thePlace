@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { slide, fade } from 'svelte/transition';
-	import { enhance } from '$app/forms'; 
+	import { enhance } from '$app/forms';
 
 	export let isOpen = false;
-	export let session; 
+	export let session;
 
 	const closeMenu = () => {
 		isOpen = false;
@@ -25,8 +25,8 @@
 </script>
 
 {#if isOpen}
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  	<!-- svelte-ignore a11y_no_static_element_interactions -->
+  	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div
 		class="fixed inset-0 bg-black/50 z-[1001]"
 		onclick={closeMenu}
@@ -72,7 +72,7 @@
 						<span>로그아웃</span>
 					</button>
 				</form>
-				{:else}
+			{:else}
 				<a
 					href="/login"
 					class="flex items-center gap-4 p-3 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
@@ -88,14 +88,25 @@
 				<span>🔍</span>
 				<span>상세검색</span>
 			</a>
-			<a
-				href="/favorites"
-				class="flex items-center gap-4 p-3 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-			>
-				<span>⭐</span>
-				<span>즐겨찾기</span>
-			</a>
-		</nav>
+
+			{#if session}
+				<a
+					href="/favorites"
+					class="flex items-center gap-4 p-3 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+				>
+					<span>⭐</span>
+					<span>즐겨찾기</span>
+				</a>
+			{:else}
+				<a
+					href="/login?message=즐겨찾기 기능은 로그인이 필요합니다."
+					class="flex items-center gap-4 p-3 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+				>
+					<span>⭐</span>
+					<span>즐겨찾기</span>
+				</a>
+			{/if}
+			</nav>
 		<div class="p-4 mt-auto text-xs text-neutral-500">
 			<p>한국의 아름다운 문화유산을 탐험하세요</p>
 		</div>

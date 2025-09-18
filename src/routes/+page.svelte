@@ -7,14 +7,17 @@
 	import HamburgerButton from '$components/ui/HamburgerButton.svelte';
 	import SideMenu from '$components/features/SideMenu.svelte';
 	import Fa from 'svelte-fa';
-	import { faXmark } from '@fortawesome/free-solid-svg-icons';
 	import TextCollapse from '$/components/ui/TextCollapse.svelte';
+	import { enhance } from '$app/forms'; // use:enhance를 위해 추가
 
+	// 1. Props 인터페이스
 	interface Props {
 		data: PageData;
+		form: { message?: string; error?: string } | undefined;
 	}
 
-	const { data }: Props = $props();
+	// 2. $props()
+	const { data, form }: Props = $props();
 
 	// 지도 초기 포커스 (국립중앙박물관)
 	const NATIONAL_MUSEUM_OF_KOREA_LAT = 37.5238506;
@@ -390,7 +393,7 @@
 		<Drawer.Root bind:open={isBottomSheetOpen}>
 			<Drawer.Content>
 				<div
-					class="flex justify-between items-center py-3 px-4 border border-neutral-300 dark:border-neutral-600"
+					class="flex justify-between items-center py-3 px-4 border-b border-neutral-300 dark:border-neutral-600"
 				>
 					<span class="bg-none p-2 text-xl">&nbsp;</span>
 					<h3 class="items-center text-xl justify-center text-center font-bold">
@@ -403,21 +406,53 @@
 					>
 						<div class="w-6 h-6 items-center flex justify-center">
 							<div class="sr-only">Close</div>
-							<Fa icon={faXmark} />
 						</div>
 					</button>
 				</div>
 				<div class="grow">
-					<div class="p-5 h-full">
-						<div class="w-full h-full overflow-y-auto">
+					<div class="p-5 h-full overflow-y-auto">
+						{#if selectedLocation}
+							{#if data.session}
+								<form
+									method="POST"
+									action="?/addFavorite"
+									use:enhance={() => {
+										return ({ result }) => {
+											if (result.type === 'success' && result.data?.message) {
+												alert(result.data.message);
+											} else if (result.type === 'failure' && result.data?.message) {
+												alert(result.data.message);
+											}
+										};
+									}}
+									class="mb-4"
+								>
+									<input type="hidden" name="locationId" value={selectedLocation.contentid} />
+									<input type="hidden" name="title" value={selectedLocation.title} />
+									<input type="hidden" name="addr1" value={selectedLocation.addr1} />
+									<button
+										type="submit"
+										class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+									>
+										<span>즐겨찾기 추가</span>
+									</button>
+								</form>
+							{/if}
+
+							{#if form?.message}
+								<p class="text-center text-sm mb-4 text-green-500">{form.message}</p>
+							{/if}
+							{#if form?.error}
+								<p class="text-center text-sm mb-4 text-red-500">{form.error}</p>
+							{/if}
 							<p class="text-base text-center leading-relaxed">
-								{#if selectedLocation && selectedLocation.overview}
+								{#if selectedLocation.overview}
 									<TextCollapse text={selectedLocation.overview} />
 								{:else}
 									정보를 불러오는 중...
 								{/if}
 							</p>
-						</div>
+						{/if}
 					</div>
 				</div>
 			</Drawer.Content>
