@@ -1,6 +1,6 @@
 // 국가유산청의 Open API를 사용하여 검색하는 코드드
 
-import { env } from '$env/dynamic/private';
+import { OPEN_API_KEY } from '$env/static/private';
 import type {
 	Category,
 	MuseumAPIResponse,
@@ -8,7 +8,7 @@ import type {
 	SearchedMuseumItem
 } from '$/types/search.types';
 
-const API_KEY: string | undefined = env.OPEN_API_KEY;
+const API_KEY: string | undefined = OPEN_API_KEY;
 const VISITKOREA_API_URL: string = 'https://apis.data.go.kr/B551011/KorService2';
 
 // 아이템 목록을 검색하는 함수
