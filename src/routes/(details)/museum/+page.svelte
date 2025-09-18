@@ -92,7 +92,7 @@
   }
 </script>
 
-{#if museum === null || data.result !== 200}
+m{#if museum === null || data.result !== 200}
   <div class="p-4">No data available.</div>
 {:else}
   <DetailPageLayout>
@@ -331,28 +331,30 @@
                   align: 'center',
                 }}
               >
-                <Carousel.Content class="">
+                <Carousel.Content class="w-full">
                   {#if exhibitionList && exhibitionList.length > 0}
                     {#each exhibitionList as exhibit (exhibit.exhibition_id)}
                       <Carousel.Item
-                        class="md:basis-1/2 lg:basis-1/3 p-2 hover:opacity-80 transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl ease-in-out"
+                        class="md:basis-1/2 lg:basis-1/3 p-2 shadow-lg"
                       >
                         <Card.Root class="h-full">
                           <Card.Content
-                            class="flex aspect-square items-center justify-center p-6 flex-col cursor-pointer"
+                            class="h-full p-0 cursor-pointer"
                             onclick={() =>
                               window.open(exhibit.source_url, '_blank')}
                           >
-                            <img
-                              src={exhibit.image_url}
-                              alt={exhibit.title}
-                              class="max-h-full max-w-full object-contain"
-                            />
-                            <div class="mt-2 text-center text-pretty">
-                              <h3 class="font-medium">{exhibit.title}</h3>
-                              <p class="text-sm text-muted-foreground">
-                                {exhibit.start_date} ~ {exhibit.end_date}
-                              </p>
+                            <div class="flex flex-col h-full w-full">
+                              <img
+                                src={exhibit.image_url}
+                                alt={exhibit.title}
+                                class="h-full w-full object-contain"
+                              />
+                              <div class="mt-2 text-center text-pretty">
+                                <h3 class="font-medium">{exhibit.title}</h3>
+                                <p class="text-sm text-muted-foreground">
+                                  {exhibit.start_date} ~ {exhibit.end_date}
+                                </p>
+                              </div>
                             </div>
                           </Card.Content>
                         </Card.Root>
