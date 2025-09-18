@@ -1,9 +1,6 @@
 <script lang="ts">
-  import { searchedCcbaItems, searchedMuseumItems } from '$/stores/store';
-  import type {
-    SearchedCcbaItem,
-    SearchedMuseumItem,
-  } from '$/types/search.types';
+  import { searchedItems } from '$/stores/store';
+  import type { ServerResponseData } from '$/types/search.types';
   import ResultCard from './ui/ResultCard.svelte';
   import SkeletonCard from './ui/SkeletonCard.svelte';
 
@@ -13,8 +10,7 @@
 
   let { isLoading }: ResultListProps = $props();
 
-  const ccbaItems: SearchedCcbaItem[] = $derived($searchedCcbaItems);
-  const museumItems: SearchedMuseumItem[] = $derived($searchedMuseumItems);
+  const resultItems: ServerResponseData[] = $derived($searchedItems);
 </script>
 
 <div class="my-3">
@@ -23,10 +19,10 @@
     <span class="text-base text-neutral-700 dark:text-neutral-200">
       {isLoading
         ? '로딩 중... 잠시만 기다려 주세요.'
-        : `${ccbaItems.length + museumItems.length}개의 결과`}
+        : `${resultItems.length}개의 결과`}
     </span>
   </div>
-  {#if ccbaItems.length === 0 && museumItems.length === 0 && !isLoading}
+  {#if resultItems.length === 0 && !isLoading}
     <p class="mt-4 text-center text-neutral-600 dark:text-neutral-400">
       검색 결과가 없습니다.
     </p>
@@ -37,11 +33,8 @@
           <SkeletonCard />
         {/each}
       {:else}
-        {#each ccbaItems as item}
-          <ResultCard ccba={item} type="ccba" />
-        {/each}
-        {#each museumItems as item}
-          <ResultCard museum={item} type="museum" />
+        {#each resultItems as item}
+          <ResultCard data={item} />
         {/each}
       {/if}
     </div>

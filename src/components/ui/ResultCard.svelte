@@ -1,50 +1,31 @@
 <script lang="ts">
   import { Badge } from '$/lib/components/ui/badge';
   import { Card, CardContent } from '$/lib/components/ui/card';
-  import { searchedCcbaItems, searchedMuseumItems } from '$/stores/store';
-  import type {
-    SearchedCcbaItem,
-    SearchedMuseumItem,
-  } from '$/types/search.types';
+  import type { ServerResponseData } from '$/types/search.types';
   import FallbackImage from './FallbackImage.svelte';
 
   interface Props {
-    ccba?: SearchedCcbaItem;
-    museum?: SearchedMuseumItem;
-    type: 'ccba' | 'museum';
+    data: ServerResponseData;
   }
 
-  const ERROR_IMG_URL =
-    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBvcGFjaXR5PSIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIzLjciPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iNiIvPjxwYXRoIGQ9Im0xNiA1OCAxNi0xOCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg==';
-
-  let { ccba, museum, type }: Props = $props();
-
-  const imageUrl = type === 'ccba' ? ccba?.imageUrl : museum?.firstimage;
-  const imageAlt = type === 'ccba' ? ccba?.ccimDesc : museum?.title;
-  const title = type === 'ccba' ? ccba?.ccbaMnm1 : museum?.title;
+  let { data }: Props = $props();
 
   const badgeName = () => {
-    if (type === 'ccba') {
+    if (data.type === 'ccba') {
       return '문화재';
-    } else if (type === 'museum') {
-      if (museum?.cat3 === 'A02060100') {
-        return '박물관';
-      } else if (museum?.cat3 === 'A02060200') {
-        return '기념관';
-      } else if (museum?.cat3 === 'A02060300') {
-        return '전시관';
-      } else {
-        return '기타';
-      }
+    } else if (data.type === 'A02060100') {
+      return '박물관';
+    } else if (data.type === 'A02060200') {
+      return '기념관';
+    } else if (data.type === 'A02060300') {
+      return '전시관';
+    } else {
+      return '기타';
     }
   };
 
   function handleClick() {
-    if (type === 'ccba' && ccba) {
-      window.location.href = `/ccba?ccbaAsno=${ccba.ccbaAsno}&ccbaCtcd=${ccba.ccbaCtcd}&ccbaKdcd=${ccba.ccbaKdcd}`;
-    } else if (type === 'museum' && museum) {
-      window.location.href = `/museum?contentId=${museum.contentid}`;
-    }
+    window.location.href = data.redirectUrl;
   }
 </script>
 
@@ -55,29 +36,25 @@
   <CardContent class="p-4">
     <div class="flex gap-3">
       <div class="w-20 h-20 rounded-lg overflow-hidden shrink-0">
-        <FallbackImage {imageUrl} {imageAlt} />
+        <FallbackImage imageUrl={data.imageUrl} imageAlt={data.imageAlt} />
       </div>
       <div class="flex-1 min-w-0">
         <div class="flex items-start justify-between mb-2">
           <h3 class="truncate">
-            {title}
+            {data.title}
           </h3>
           <Badge
-            variant={type === 'ccba' ? 'default' : 'secondary'}
+            variant={data.type === 'ccba' ? 'default' : 'secondary'}
             class="text-xs ml-2 shrink-0"
           >
             {badgeName()}
           </Badge>
         </div>
         <p class="text-xs line-clamp-2 mt-2">
-          {#if type === 'ccba'}
-            {ccba?.ccbaCtcdNm} - {ccba?.ccbaAdmin}
-          {:else}
-            {museum?.addr1}
-          {/if}
+          {data.address}
         </p>
-        {#if type === 'museum' && museum?.tel}
-          <p class="text-xs mt-1">Tel: {museum.tel}</p>
+        {#if data.desc}
+          <p class="text-xs mt-1">Tel: {data.desc}</p>
         {/if}
       </div>
     </div>

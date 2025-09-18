@@ -113,7 +113,12 @@ export interface SearchedMuseumItem {
 	cat3: string;
 }
 
-export interface ServerResponse {
-	ccbaItems: SearchedCcbaItem[];
-	museumItems: SearchedMuseumItem[];
+export interface ServerResponseData {
+	title: string;
+	type: string;
+	address: string;
+	desc?: string;
+	imageUrl: string;
+	imageAlt: string;
+	redirectUrl: string;
 }
