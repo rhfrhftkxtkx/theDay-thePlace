@@ -1,16 +1,16 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
+import { OPEN_API_KEY } from '$env/static/private';
 import type {
 	Category,
 	SearchedCcbaItem,
 	SearchedMuseumItem,
-	ServerResponse
+	ServerResponseData
 } from '$/types/search.types';
 import { ccbaItemSearch } from './ccbaSearch';
 import { museumItemSearch } from './museumSearch';
 
 // API 정보
-const API_KEY: string | undefined = env.OPEN_API_KEY;
+const API_KEY: string | undefined = OPEN_API_KEY;
 
 // Client Side에서 POST 요청을 보낼 때의 POST Data 형식
 interface ApiRequestData {
@@ -69,13 +69,35 @@ export async function POST({ request }: RequestEvent): Promise<Response> {
 		}
 
 		// 응답 데이터 생성
-		const responseData: ServerResponse = {
-			ccbaItems: ccbaItems,
-			museumItems: museumItems
-		};
+		const responseData: ServerResponseData[] = [];
+
+		ccbaItems.forEach((item) => {
+			responseData.push({
+				title: item.ccbaMnm1,
+				type: 'ccba',
+				address: `${item.ccbaCtcdNm} - ${item.ccbaAdmin}`,
+				imageUrl: item.imageUrl,
+				imageAlt: item.ccimDesc || 'No description available',
+				redirectUrl: `/ccba?ccbaAsno=${item.ccbaAsno}&ccbaCtcd=${item.ccbaCtcd}&ccbaKdcd=${item.ccbaKdcd}`
+			});
+		});
+
+		museumItems.forEach((item) => {
+			responseData.push({
+				title: item.title,
+				type: item.cat3,
+				address: item.addr1,
+				desc: item.tel,
+				imageUrl: item.firstimage,
+				imageAlt: item.title,
+				redirectUrl: `/museum?contentId=${item.contentid}`
+			});
+		});
+
+		responseData.sort((a, b) => a.title.localeCompare(b.title));
 
 		// 응답을 JSON 형식으로 반환
-		return json(responseData, { status: 200 });
+		return json({ responseData, status: 200 });
 
 		// CCBA는 API가 Keyword를 parameter로 받지 않으므로, 필터 검색 후,
 	} catch (error) {

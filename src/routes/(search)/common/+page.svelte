@@ -4,11 +4,10 @@
     ccbaList,
     searchFilter,
     searchKeyword,
-    searchedCcbaItems,
-    searchedMuseumItems,
+    searchedItems,
     visitKorAreaCode2,
   } from '$/stores/store';
-  import type { ServerResponse } from '$/types/search.types';
+  import type { ServerResponseData } from '$/types/search.types';
   import ResultList from '$/components/ResultList.svelte';
   import { Fa } from 'svelte-fa';
   import { faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -20,10 +19,11 @@
   let categoryListLoading: boolean = $state(false);
 
   // 검색 요청에 따른 json 응답 데이터를 searchedCcbaItems와 searchedMuseumItems에 저장
-  async function formatSearchedResponse(data: ServerResponse): Promise<void> {
+  async function formatSearchedResponse(
+    data: ServerResponseData[]
+  ): Promise<void> {
     console.log('검색 결과:', data);
-    searchedCcbaItems.set(data.ccbaItems);
-    searchedMuseumItems.set(data.museumItems);
+    searchedItems.set(data);
   }
 
   // 클릭 시, searchKeyword와 searchFilter를 사용하여 검색 요청
@@ -65,7 +65,11 @@
           throw new Error('검색 요청이 실패했습니다.');
         }
         // 검색 요청이 성공하면 응답을 JSON으로 파싱
-        const responseData: ServerResponse = await response.json();
+        const { responseData, status } = await response.json();
+
+        if (status !== 200) {
+          throw new Error('검색 응답이 올바르지 않습니다.');
+        }
 
         // 파싱된 응답 데이터를 포맷팅 및 저장
         await formatSearchedResponse(responseData);

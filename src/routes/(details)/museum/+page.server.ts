@@ -7,7 +7,7 @@ import type {
 	VisitKorImageItem,
 	VisitKorImageResponse
 } from '$/types/detail.types';
-import { env } from '$env/dynamic/private';
+import { OPEN_API_KEY } from '$env/static/private';
 import type { PageServerLoad } from './$types';
 import { getExhibitionList } from './exhibition';
 
@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	const MOBILE_OS: string = 'WEB';
 	const MOBILE_APP: string = 'theday-theplace';
-	const SERVICE_KEY: string = env.OPEN_API_KEY;
+	const SERVICE_KEY: string = OPEN_API_KEY;
 
 	const contentId = url.searchParams.get('contentId');
 
@@ -77,7 +77,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		}
 		museumDetails = detailData.body.items.item[0];
 
-		console.log(museumDetails);
+		// console.log(museumDetails);
 
 		const catResponse = await fetch(
 			`${VISITKOR_CATEGORY_API_URL}?MobileOS=${MOBILE_OS}&MobileApp=${MOBILE_APP}&serviceKey=${SERVICE_KEY}&contentTypeId=14&cat1=${museumDetails.cat1}&cat2=${museumDetails.cat2}&cat3=${museumDetails.cat3}&_type=json`
@@ -164,7 +164,7 @@ export const load: PageServerLoad = async ({ url }) => {
 			};
 		}
 
-		console.log(imgData);
+		// console.log(imgData);
 
 		museumImg = imgData.body.items.item;
 	} catch (e) {
