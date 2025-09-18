@@ -7,7 +7,7 @@ import type {
 	VisitKorImageItem,
 	VisitKorImageResponse
 } from '$/types/detail.types';
-import { env } from '$env/dynamic/private';
+import { OPEN_API_KEY } from '$env/static/private';
 import type { PageServerLoad } from './$types';
 import { getExhibitionList } from './exhibition';
 
@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	const MOBILE_OS: string = 'WEB';
 	const MOBILE_APP: string = 'theday-theplace';
-	const SERVICE_KEY: string = env.OPEN_API_KEY;
+	const SERVICE_KEY: string = OPEN_API_KEY;
 
 	const contentId = url.searchParams.get('contentId');
 

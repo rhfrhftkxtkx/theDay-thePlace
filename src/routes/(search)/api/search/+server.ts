@@ -1,5 +1,5 @@
 import { json, type RequestEvent } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
+import { OPEN_API_KEY } from '$env/static/private';
 import type {
 	Category,
 	SearchedCcbaItem,
@@ -10,7 +10,7 @@ import { ccbaItemSearch } from './ccbaSearch';
 import { museumItemSearch } from './museumSearch';
 
 // API 정보
-const API_KEY: string | undefined = env.OPEN_API_KEY;
+const API_KEY: string | undefined = OPEN_API_KEY;
 
 // Client Side에서 POST 요청을 보낼 때의 POST Data 형식
 interface ApiRequestData {
