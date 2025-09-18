@@ -394,14 +394,13 @@
 			</div>
 		{/if}
 
-		<Drawer.Root bind:open={isBottomSheetOpen}>
+	<Drawer.Root bind:open={isBottomSheetOpen}>
 	<Drawer.Content class="flex flex-col">
 
 		{#if selectedLocation}
-			{@const isFavorite = selectedLocation && favoriteIds?.has(selectedLocation.contentid)}
-
 			{#if data.session}
 				{#key rerenderKey}
+				{@const isFavorite = selectedLocation && favoriteIds?.has(selectedLocation.contentid)}
 					<form
 						method="POST"
 						action={isFavorite ? '?/deleteFavorite' : '?/addFavorite'}
@@ -422,14 +421,19 @@
 								// 폼 제출 완료 후: 서버 응답에 따라 최종 처리
 								if (result.type === 'failure' && result.data?.error) {
 									console.error('즐겨찾기 업데이트 실패:', result.data.error);
-									// 만약 서버 처리가 실패했다면, 미리 바꿨던 하트 모양을 원래대로 
+
+									// 만약 원래 즐겨찾기 상태였다면 (isFavorite === true),
+									// UI는 미리 삭제된 것처럼 보였을 것이므로, 실패 시 다시 '추가'해서 원상 복구
 									if (isFavorite) {
 										favoriteIds.add(selectedLocation.contentid);
 									} else {
+										// 반대로 원래 즐겨찾기가 아니었다면 (isFavorite === false),
+										// UI는 미리 추가된 것처럼 보였을 것이므로, 실패 시 다시 '삭제'해서 원상 복구
 										favoriteIds.delete(selectedLocation.contentid);
-									}
-									// 실패 시에도 key 값을 바꿔서 롤백된 상태를 즉시 반영
-									rerenderKey++;
+										}
+
+										// 실패 시에도 key 값을 바꿔서 롤백된 상태를 즉시 UI에 반영합니다.
+										rerenderKey++;
 								}
 							};
 						}}
