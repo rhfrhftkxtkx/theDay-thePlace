@@ -51,7 +51,7 @@
         ></div>
       {/if}
       <button
-        class="mt-2 text-blue-500 hover:underline focus:outline-none z-20 relative"
+        type="button" class="mt-2 text-blue-500 hover:underline focus:outline-none z-20 relative"
         onclick={toggleCollapse}
       >
         {isCollapsed ? showMoreText : showLessText}
