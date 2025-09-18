@@ -92,7 +92,7 @@
   }
 </script>
 
-m{#if museum === null || data.result !== 200}
+{#if museum === null || data.result !== 200}
   <div class="p-4">No data available.</div>
 {:else}
   <DetailPageLayout>
