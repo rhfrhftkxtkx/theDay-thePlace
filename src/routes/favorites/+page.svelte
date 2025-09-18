@@ -17,7 +17,7 @@
 				<Fa icon={faArrowLeft} />
 			</a>
 			<h1 class="text-xl font-bold">즐겨찾기 목록</h1>
-			<div class="w-8" />
+			<div class="w-8" ></div>
 		</div>
 	</header>
 

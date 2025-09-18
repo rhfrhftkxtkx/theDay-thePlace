@@ -1,23 +1,30 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { slide } from 'svelte/transition';
-	import type { PageData, LocationData } from '$lib/mapTypes';
-	// import OffcanvasTab from '$components/ui/OffcanvasTab.svelte';
+	import type { PageData } from './$types'; // SvelteKit이 생성한 PageData 타입을 가져와 layout 데이터까지 인식하도록 합니다.
+	import type { LocationData } from '$lib/mapTypes';
 	import * as Drawer from '$lib/components/ui/drawer';
 	import HamburgerButton from '$components/ui/HamburgerButton.svelte';
 	import SideMenu from '$components/features/SideMenu.svelte';
-	import StarIcon from '$/lib/components/ui/StarIcon.svelte';
+	import HeartIcon from '$/lib/components/ui/HeartIcon.svelte';
 	import TextCollapse from '$/components/ui/TextCollapse.svelte';
 	import { enhance } from '$app/forms'; // use:enhance를 위해 추가
 
-	// 1. Props 인터페이스
+	// Props 인터페이스에서 사용하는 PageData 타입은 './$types'에서 가져온 것
 	interface Props {
 		data: PageData;
 		form: { message?: string; error?: string } | undefined;
 	}
 
-	// 2. $props()
 	const { data, form }: Props = $props();
+
+	// data prop을 기반으로 한 로컬 반응형 상태(state)를 생성합니다.
+	let favoriteIds = $state(data.favoriteLocationIds);
+
+	// $effect 룬을 사용해 data.favoriteLocationIds prop이 변경될 때마다 로컬 상태(favoriteIds)를 동기화
+	$effect(() => {
+		favoriteIds = data.favoriteLocationIds;
+	});
 
 	// 지도 초기 포커스 (국립중앙박물관)
 	const NATIONAL_MUSEUM_OF_KOREA_LAT = 37.5238506;
@@ -31,6 +38,8 @@
 	let searchResultItems: LocationData[] = $state([]); // 검색 결과 목록
 	let isSearchResultsPanelVisible = $state(false); // 검색 결과 패널 표시 여부
 	let isSearchActive = $state(false); // 검색 중인지 여부
+
+	let rerenderKey = $state(0); // 강제 리렌더링을 위한 키
 
 	// --- 일반 변수 ---
 	let mapContainer: HTMLDivElement; // 지도가 그려질 HTML 요소를 담을 변수
@@ -134,18 +143,19 @@
 		isSearchResultsPanelVisible = false;
 		searchResultItems = [];
 		// 전체 장소 데이터 중 검색어와 일치하는 항목 필터링
-		const filteredLocations = (data.locations || []).filter(
-			(loc) =>
-				loc.title?.toLowerCase().includes(query) || // 제목
-				loc.addr1?.toLowerCase().includes(query) || // 주소
-				loc.overview?.toLowerCase().includes(query) // 개요
+		const filteredLocations = (data.locations || []).filter((loc: LocationData) =>
+			loc.title?.toLowerCase().includes(query) || // 제목
+			loc.addr1?.toLowerCase().includes(query) || // 주소
+			loc.overview?.toLowerCase().includes(query) // 개요
 		);
 
 		if (filteredLocations.length > 0) {
 			isSearchActive = true; // 검색 중 상태로 변경
 			searchResultItems = filteredLocations; // 필터링 된 결과를 상태 변수에 저장
 			isSearchResultsPanelVisible = true; // 검색 결과 패널 표시
-			const filteredContentIds = new Set(filteredLocations.map((loc) => loc.contentid));
+			const filteredContentIds = new Set(
+				filteredLocations.map((loc: LocationData) => Number(loc.contentid))
+			) as Set<number>;
 			setMarkersVisibility(true, { filterIds: filteredContentIds }); // 필터링 된 마커만 지도에 표시
 
 			// 필터링 된 검색 결과 마커가 모두 보이도록 지도 중심과 줌 레벨 조정
@@ -197,15 +207,9 @@
 					mapClickListener = window.kakao.maps.event.addListener(map, 'click', handleMapClick);
 
 					// 장소 데이터가 있으면 마커 생성
-					if (
-						map &&
-						data &&
-						!data.error &&
-						data.locations &&
-						data.locations.length > 0
-					) {
+					if (map && data && !data.error && data.locations && data.locations.length > 0) {
 						currentMarkers = [];
-						data.locations.forEach((loc) => {
+						data.locations.forEach((loc: LocationData) => {
 							const lat = loc.mapy ? parseFloat(loc.mapy) : NaN;
 							const lng = loc.mapx ? parseFloat(loc.mapx) : NaN;
 							if (!isNaN(lat) && !isNaN(lng) && loc.title) {
@@ -391,84 +395,101 @@
 		{/if}
 
 		<Drawer.Root bind:open={isBottomSheetOpen}>
-    <Drawer.Content>
-        {#if selectedLocation}
-            {#if data.session}
-                <form
-                    method="POST"
-                    action="?/addFavorite"
-                    use:enhance={() => {
-                        return ({ result }) => {
-                            if (result.type === 'success' && result.data?.message) {
-                                alert(result.data.message);
-                            } else if (result.type === 'failure' && result.data?.error) {
-                                alert(result.data.error); // 서버에서 error로 보낸 메시지를 받도록 수정
-                            }
-                        };
-                    }}
-                >
-                    <div
-                        class="flex justify-between items-center py-3 px-4 border-b border-neutral-300 dark:border-neutral-600"
-                    >
-                        <span class="w-8">&nbsp;</span>
-                        <h3 class="items-center text-xl justify-center text-center font-bold">
-                            {selectedLocation?.title || '상세 정보'}
-                        </h3>
-                        
-                        <button
-                            type="submit"
-                            class="w-auto flex items-center justify-center gap-1 px-2 py-1 bg-yellow-500 text-white text-sm rounded-lg hover:bg-yellow-600 transition-colors"
-                        >
-                            <StarIcon solid={true} class="w-4 h-4" />
-                        </button>
-                    </div>
+	<Drawer.Content class="flex flex-col">
 
-                    <div class="grow">
-                        <div class="p-5 h-full overflow-y-auto">
-                            <input type="hidden" name="locationId" value={selectedLocation.contentid} />
-                            <input type="hidden" name="title" value={selectedLocation.title} />
-                            <input type="hidden" name="addr1" value={selectedLocation.addr1} />
+		{#if selectedLocation}
+			{@const isFavorite = selectedLocation && favoriteIds?.has(selectedLocation.contentid)}
 
-                            {#if form?.message}
-                                <p class="text-center text-sm mb-4 text-green-500">{form.message}</p>
-                            {/if}
-                            {#if form?.error}
-                                <p class="text-center text-sm mb-4 text-red-500">{form.error}</p>
-                            {/if}
+			{#if data.session}
+				{#key rerenderKey}
+					<form
+						method="POST"
+						action={isFavorite ? '?/deleteFavorite' : '?/addFavorite'}
+						use:enhance={() => {
+							if (!selectedLocation) return;
+							// 폼 제출 시작 시: 낙관적 UI 업데이트
+							if (isFavorite) {
+								favoriteIds.delete(selectedLocation.contentid);
+							} else {
+								favoriteIds.add(selectedLocation.contentid);
+							}
 
-                            <p class="text-base text-center leading-relaxed">
-                                {#if selectedLocation.overview}
-                                    <TextCollapse text={selectedLocation.overview} />
-                                {:else}
-                                    정보를 불러오는 중...
-                                {/if}
-                            </p>
-                        </div>
-                    </div>
-                </form> {:else}
-                <div
-                    class="flex justify-between items-center py-3 px-4 border-b border-neutral-300 dark:border-neutral-600"
-                >
-                    <span class="w-8">&nbsp;</span>
-                    <h3 class="items-center text-xl justify-center text-center font-bold">
-                        {selectedLocation?.title || '상세 정보'}
-                    </h3>
-                    <span class="w-8">&nbsp;</span> </div>
-                <div class="grow">
-                    <div class="p-5 h-full overflow-y-auto">
-                         <p class="text-base text-center leading-relaxed">
-                            {#if selectedLocation.overview}
-                                <TextCollapse text={selectedLocation.overview} />
-                            {:else}
-                                정보를 불러오는 중...
-                            {/if}
-                        </p>
-                    </div>
-                </div>
-            {/if}
-        {/if}
-    </Drawer.Content>
+							// UI 상태를 변경한 후, key 값을 바꿔서 리렌더링을 강제로 실행
+							rerenderKey++;
+
+							return ({ result }) => {
+								if (!selectedLocation) return;
+								// 폼 제출 완료 후: 서버 응답에 따라 최종 처리
+								if (result.type === 'failure' && result.data?.error) {
+									console.error('즐겨찾기 업데이트 실패:', result.data.error);
+									// 만약 서버 처리가 실패했다면, 미리 바꿨던 하트 모양을 원래대로 
+									if (isFavorite) {
+										favoriteIds.add(selectedLocation.contentid);
+									} else {
+										favoriteIds.delete(selectedLocation.contentid);
+									}
+									// 실패 시에도 key 값을 바꿔서 롤백된 상태를 즉시 반영
+									rerenderKey++;
+								}
+							};
+						}}
+						class="flex flex-col grow"
+					>
+						<div
+							class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700"
+						>
+							<div class="w-10"></div>
+							<h3 class="text-lg font-semibold text-center">
+								{selectedLocation?.title || '상세 정보'}
+							</h3>
+							<button
+								type="submit"
+								aria-label={isFavorite ? '즐겨찾기 삭제' : '즐겨찾기 추가'}
+								class="flex items-center justify-center w-10 h-10 rounded-full transition-colors {isFavorite
+									? 'text-red-500 bg-red-100 hover:bg-red-200'
+									: 'text-gray-400 bg-gray-100 hover:bg-gray-200'}"
+							>
+								<HeartIcon solid={isFavorite} class="w-5 h-5" />
+							</button>
+						</div>
+
+						<div class="grow overflow-y-auto p-5">
+							<input type="hidden" name="locationId" value={selectedLocation.contentid} />
+							<input type="hidden" name="title" value={selectedLocation.title} />
+							<input type="hidden" name="addr1" value={selectedLocation.addr1} />
+
+							<div class="text-gray-700 dark:text-gray-300 leading-relaxed text-center">
+								{#if selectedLocation.overview}
+									<TextCollapse text={selectedLocation.overview} />
+								{:else}
+									<p>정보를 불러오는 중...</p>
+								{/if}
+							</div>
+						</div>
+					</form>
+				{/key}
+			{:else}
+				<div
+					class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700"
+				>
+					<div class="w-10"></div>
+					<h3 class="text-lg font-semibold text-center">
+						{selectedLocation?.title || '상세 정보'}
+					</h3>
+					<div class="w-10"></div>
+				</div>
+				<div class="grow overflow-y-auto p-5">
+					<div class="text-gray-700 dark:text-gray-300 leading-relaxed text-center">
+						{#if selectedLocation.overview}
+							<TextCollapse text={selectedLocation.overview} />
+						{:else}
+							<p>정보를 불러오는 중...</p>
+						{/if}
+					</div>
+				</div>
+			{/if}
+		{/if}
+	</Drawer.Content>
 </Drawer.Root>
-
-		</main>
+	</main>
 </div>
