@@ -1,12 +1,5 @@
-// src/routes/+page.ts
-
 import type { PageLoad } from './$types';
-// PageData 타입은 최종적으로 컴포넌트가 받을 데이터의 타입이므로,
-// 이 load 함수의 반환 타입을 지정하는 데에는 사용하지 않습니다.
-// import type { PageData } from '$lib/mapTypes';
 
-// V V V KEY CHANGE HERE V V V
-// load 함수의 타입에서 <PageData> 제네릭을 삭제합니다.
 export const load: PageLoad = async ({ fetch }) => {
 	try {
 		// 서버의 api 엔드포인트(/api/locations)로부터 장소 데이터 GET 요청
