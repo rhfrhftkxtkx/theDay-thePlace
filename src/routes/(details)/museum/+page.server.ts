@@ -11,8 +11,6 @@ import { env } from '$env/dynamic/private';
 import type { PageServerLoad } from './$types';
 import { getExhibitionList } from './exhibition';
 
-// src/routes/museum/[contentId]/+page.server.ts
-
 import { fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
