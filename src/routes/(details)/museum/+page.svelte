@@ -17,6 +17,10 @@
   import type { CarouselAPI } from '$/lib/components/ui/carousel/context';
   import { onMount } from 'svelte';
 
+  // 즐겨찾기 추가
+  import { enhance } from '$app/forms';
+	import HeartIcon from '$/lib/components/ui/HeartIcon.svelte';
+
   // page loaded data
   let { data }: { data: PageData } = $props();
   //  data
@@ -27,6 +31,15 @@
   let museumImg = $state<VisitKorImageItem[] | null>(data.museumImg || null);
   let cat = $state<string | null>(data.catName || null);
   let exhibitionList = $state(data.exhibitionList || null);
+
+  // 즐겨찾기 추가
+  let favoriteIds = $state(data.favoriteLocationIds);
+	$effect(() => {
+		favoriteIds = data.favoriteLocationIds;
+	});
+	// 강제 리렌더링을 위한 키
+	let rerenderKey = $state(0);
+
 
   // carousel api
   let carouselApi = $state<CarouselAPI>();
@@ -111,7 +124,56 @@
       <h1 class="text-2xl mb-1">
         {museum.title}
       </h1>
-    </div>
+
+      <!-- 즐겨찾기 추가 -->
+      {#if data.session}
+				{#key rerenderKey}
+					{@const isFavorite = museum && favoriteIds?.has(parseInt(museum.contentid))}
+					<form
+						method="POST"
+						action={isFavorite ? '?/deleteFavorite' : '?/addFavorite'}
+						use:enhance={() => {
+							if (!museum) return;
+							// 폼 제출 시작 시: 낙관적 UI 업데이트
+							if (isFavorite) {
+								favoriteIds.delete(parseInt(museum.contentid));
+							} else {
+								favoriteIds.add(parseInt(museum.contentid));
+							}
+							rerenderKey++; // UI 강제 리렌더링
+
+							return ({ result }) => {
+								if (!museum) return;
+								// 폼 제출 완료 후: 서버 응답 실패 시 롤백
+								if (result.type === 'failure') {
+									console.error('즐겨찾기 업데이트 실패:', result.data?.error);
+									if (isFavorite) {
+										favoriteIds.add(parseInt(museum.contentid));
+									} else {
+										favoriteIds.delete(parseInt(museum.contentid));
+									}
+									rerenderKey++; // 롤백된 UI 강제 리렌더링
+								}
+							};
+						}}
+						class="flex-shrink-0"
+					>
+						<input type="hidden" name="locationId" value={museum.contentid} />
+						<input type="hidden" name="title" value={museum.title} />
+						<input type="hidden" name="addr1" value={museum.addr1} />
+						<button
+							type="submit"
+							aria-label={isFavorite ? '즐겨찾기 삭제' : '즐겨찾기 추가'}
+							class="flex items-center justify-center w-10 h-10 rounded-full transition-colors {isFavorite
+								? 'text-red-500 bg-red-100 hover:bg-red-200'
+								: 'text-gray-400 bg-gray-100 hover:bg-gray-200'}"
+						>
+							<HeartIcon solid={isFavorite} class="w-5 h-5" />
+						</button>
+					</form>
+				{/key}
+			{/if}
+		</div>
 
     <div slot="location" class="flex items-center gap-1 text-sm opacity-90">
       <svg
