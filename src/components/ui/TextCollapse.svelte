@@ -1,12 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { slide } from 'svelte/transition';
 
   const {
     text = '',
     maxLines = 5,
-    showMoreText = 'Show More',
-    showLessText = 'Show Less',
+    showMoreText = '더 읽기',
+    showLessText = '간단히 보기',
   } = $props();
 
   let isCollapsed = $state(true);
@@ -51,7 +50,8 @@
         ></div>
       {/if}
       <button
-        type="button" class="mt-2 text-blue-500 hover:underline focus:outline-none z-20 relative"
+        type="button"
+        class="mt-2 text-blue-500 hover:underline focus:outline-none z-20 relative"
         onclick={toggleCollapse}
       >
         {isCollapsed ? showMoreText : showLessText}
