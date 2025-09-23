@@ -2,6 +2,7 @@
   import DetailPageLayout from '$/components/DetailPageLayout.svelte';
   import Fa from 'svelte-fa';
   import { faClock } from '@fortawesome/free-solid-svg-icons';
+  import { Button } from '$/lib/components/ui/button';
   import * as Card from '$/lib/components/ui/card';
   import * as Carousel from '$/lib/components/ui/carousel';
   import * as Tabs from '$/lib/components/ui/tabs';
@@ -14,6 +15,7 @@
   import type { PageData } from './$types';
   import type { CarouselAPI } from '$/lib/components/ui/carousel/context';
   import { onMount } from 'svelte';
+  import PinIcon from '$/assets/PinIcon.svelte';
 
   // page loaded data
   let { data }: { data: PageData } = $props();
@@ -110,38 +112,7 @@
     </div>
 
     <div slot="location" class="flex items-center gap-1 text-sm opacity-90">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6"
-        viewBox="0 0 24 24"
-      >
-        <circle cx="12" cy="9" r="2.5" fill="currentColor" fill-opacity="0">
-          <animate
-            fill="freeze"
-            attributeName="fill-opacity"
-            begin="0.7s"
-            dur="0.15s"
-            values="0;1"
-          />
-        </circle>
-        <path
-          fill="none"
-          stroke="currentColor"
-          stroke-dasharray="48"
-          stroke-dashoffset="48"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M12 20.5c0 0 -6 -7 -6 -11.5c0 -3.31 2.69 -6 6 -6c3.31 0 6 2.69 6 6c0 4.5 -6 11.5 -6 11.5Z"
-        >
-          <animate
-            fill="freeze"
-            attributeName="stroke-dashoffset"
-            dur="0.6s"
-            values="48;0"
-          />
-        </path>
-      </svg>
+      <PinIcon />
       <span>{ccba.item.ccbaLcad}</span>
     </div>
 
@@ -189,6 +160,53 @@
                     class="w-full h-full rounded-lg"
                   ></div>
                 </div>
+                <Button
+                  variant="outline"
+                  class="mt-4 p-0 w-full"
+                  onclick={() => {
+                    const naverMapAppUrl = `nmap://place?lat=${ccba.latitude}&lng=${ccba.longitude}&name=${ccba.item.ccbaMnm1}&appname=${import.meta.env.VITE_APP_NAME}`;
+                    const naverMapWebUrl = `https://map.naver.com?lng=${ccba.longitude}&lat=${ccba.latitude}&title=${ccba.item.ccbaMnm1}`;
+
+                    location.href = naverMapAppUrl;
+                    setTimeout(() => {
+                      window.open(naverMapWebUrl, '_blank');
+                    }, 500);
+                  }}
+                >
+                  <PinIcon />
+                  길 찾기 (네이버 지도)
+                </Button>
+                <Button
+                  variant="outline"
+                  class="mt-4 p-0 w-full"
+                  onclick={() => {
+                    const googleMapWebUrl = `https://www.google.com/maps/dir/?api=1&destination=${ccba.latitude},${ccba.longitude}`;
+                    setTimeout(() => {
+                      window.open(googleMapWebUrl, '_blank');
+                    }, 500);
+                  }}
+                >
+                  <PinIcon />
+                  길 찾기 (구글 지도)
+                </Button>
+                <Button
+                  variant="outline"
+                  class="mt-4 p-0 w-full"
+                  onclick={() => {
+                    if (map) {
+                      const kakaoMapAppUrl = `kakaomap://map?p=${ccba.latitude},${ccba.longitude}(${ccba.item.ccbaMnm1})`;
+                      const kakaoMapWebUrl = `https://map.kakao.com/link/map/${ccba.item.ccbaMnm1},${ccba.latitude},${ccba.longitude}`;
+
+                      location.href = kakaoMapAppUrl;
+                      setTimeout(() => {
+                        window.open(kakaoMapWebUrl, '_blank');
+                      }, 500);
+                    }
+                  }}
+                >
+                  <PinIcon />
+                  길 찾기 (카카오맵)
+                </Button>
               </div>
             </div>
           </Card.Content>
