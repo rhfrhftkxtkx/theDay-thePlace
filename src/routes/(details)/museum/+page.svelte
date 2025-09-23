@@ -2,6 +2,7 @@
   import DetailPageLayout from '$/components/DetailPageLayout.svelte';
   import Fa from 'svelte-fa';
   import { faClock } from '@fortawesome/free-solid-svg-icons';
+  import { Button } from '$/lib/components/ui/button';
   import * as Card from '$/lib/components/ui/card';
   import * as Carousel from '$/lib/components/ui/carousel';
   import * as Tabs from '$/lib/components/ui/tabs';
@@ -19,7 +20,8 @@
 
   // 즐겨찾기 추가
   import { enhance } from '$app/forms';
-	import HeartIcon from '$/lib/components/ui/HeartIcon.svelte';
+  import HeartIcon from '$/lib/components/ui/HeartIcon.svelte';
+  import PinIcon from '$/assets/PinIcon.svelte';
 
   // page loaded data
   let { data }: { data: PageData } = $props();
@@ -34,12 +36,11 @@
 
   // 즐겨찾기 추가
   let favoriteIds = $state(data.favoriteLocationIds);
-	$effect(() => {
-		favoriteIds = data.favoriteLocationIds;
-	});
-	// 강제 리렌더링을 위한 키
-	let rerenderKey = $state(0);
-
+  $effect(() => {
+    favoriteIds = data.favoriteLocationIds;
+  });
+  // 강제 리렌더링을 위한 키
+  let rerenderKey = $state(0);
 
   // carousel api
   let carouselApi = $state<CarouselAPI>();
@@ -127,87 +128,57 @@
 
       <!-- 즐겨찾기 추가 -->
       {#if data.session}
-				{#key rerenderKey}
-					{@const isFavorite = museum && favoriteIds?.has(parseInt(museum.contentid))}
-					<form
-						method="POST"
-						action={isFavorite ? '?/deleteFavorite' : '?/addFavorite'}
-						use:enhance={() => {
-							if (!museum) return;
-							// 폼 제출 시작 시: 낙관적 UI 업데이트
-							if (isFavorite) {
-								favoriteIds.delete(parseInt(museum.contentid));
-							} else {
-								favoriteIds.add(parseInt(museum.contentid));
-							}
-							rerenderKey++; // UI 강제 리렌더링
+        {#key rerenderKey}
+          {@const isFavorite =
+            museum && favoriteIds?.has(parseInt(museum.contentid))}
+          <form
+            method="POST"
+            action={isFavorite ? '?/deleteFavorite' : '?/addFavorite'}
+            use:enhance={() => {
+              if (!museum) return;
+              // 폼 제출 시작 시: 낙관적 UI 업데이트
+              if (isFavorite) {
+                favoriteIds.delete(parseInt(museum.contentid));
+              } else {
+                favoriteIds.add(parseInt(museum.contentid));
+              }
+              rerenderKey++; // UI 강제 리렌더링
 
-							return ({ result }) => {
-								if (!museum) return;
-								// 폼 제출 완료 후: 서버 응답 실패 시 롤백
-								if (result.type === 'failure') {
-									console.error('즐겨찾기 업데이트 실패:', result.data?.error);
-									if (isFavorite) {
-										favoriteIds.add(parseInt(museum.contentid));
-									} else {
-										favoriteIds.delete(parseInt(museum.contentid));
-									}
-									rerenderKey++; // 롤백된 UI 강제 리렌더링
-								}
-							};
-						}}
-						class="flex-shrink-0"
-					>
-						<input type="hidden" name="locationId" value={museum.contentid} />
-						<input type="hidden" name="title" value={museum.title} />
-						<input type="hidden" name="addr1" value={museum.addr1} />
-						<button
-							type="submit"
-							aria-label={isFavorite ? '즐겨찾기 삭제' : '즐겨찾기 추가'}
-							class="flex items-center justify-center w-10 h-10 rounded-full transition-colors {isFavorite
-								? 'text-red-500 bg-red-100 hover:bg-red-200'
-								: 'text-gray-400 bg-gray-100 hover:bg-gray-200'}"
-						>
-							<HeartIcon solid={isFavorite} class="w-5 h-5" />
-						</button>
-					</form>
-				{/key}
-			{/if}
-		</div>
+              return ({ result }) => {
+                if (!museum) return;
+                // 폼 제출 완료 후: 서버 응답 실패 시 롤백
+                if (result.type === 'failure') {
+                  console.error('즐겨찾기 업데이트 실패:', result.data?.error);
+                  if (isFavorite) {
+                    favoriteIds.add(parseInt(museum.contentid));
+                  } else {
+                    favoriteIds.delete(parseInt(museum.contentid));
+                  }
+                  rerenderKey++; // 롤백된 UI 강제 리렌더링
+                }
+              };
+            }}
+            class="flex-shrink-0"
+          >
+            <input type="hidden" name="locationId" value={museum.contentid} />
+            <input type="hidden" name="title" value={museum.title} />
+            <input type="hidden" name="addr1" value={museum.addr1} />
+            <button
+              type="submit"
+              aria-label={isFavorite ? '즐겨찾기 삭제' : '즐겨찾기 추가'}
+              class="flex items-center justify-center w-10 h-10 rounded-full transition-colors {isFavorite
+                ? 'text-red-500 bg-red-100 hover:bg-red-200'
+                : 'text-gray-400 bg-gray-100 hover:bg-gray-200'}"
+            >
+              <HeartIcon solid={isFavorite} class="w-5 h-5" />
+            </button>
+          </form>
+        {/key}
+      {/if}
+    </div>
 
     <div slot="location" class="flex items-center gap-1 text-sm opacity-90">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-6 w-6"
-        viewBox="0 0 24 24"
-      >
-        <circle cx="12" cy="9" r="2.5" fill="currentColor" fill-opacity="0">
-          <animate
-            fill="freeze"
-            attributeName="fill-opacity"
-            begin="0.7s"
-            dur="0.15s"
-            values="0;1"
-          />
-        </circle>
-        <path
-          fill="none"
-          stroke="currentColor"
-          stroke-dasharray="48"
-          stroke-dashoffset="48"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M12 20.5c0 0 -6 -7 -6 -11.5c0 -3.31 2.69 -6 6 -6c3.31 0 6 2.69 6 6c0 4.5 -6 11.5 -6 11.5Z"
-        >
-          <animate
-            fill="freeze"
-            attributeName="stroke-dashoffset"
-            dur="0.6s"
-            values="48;0"
-          />
-        </path>
-      </svg>
+      <PinIcon />
       <span>{museum.addr1 + museum.addr2}</span>
     </div>
 
@@ -307,6 +278,53 @@
                     class="w-full h-full rounded-lg"
                   ></div>
                 </div>
+                <Button
+                  variant="outline"
+                  class="mt-4 p-0 w-full"
+                  onclick={() => {
+                    const naverMapAppUrl = `nmap://place?lat=${museum.mapy}&lng=${museum.mapx}&name=${museum.title}&appname=${import.meta.env.VITE_APP_NAME}`;
+                    const naverMapWebUrl = `https://map.naver.com?lng=${museum.mapx}&lat=${museum.mapy}&title=${museum.title}`;
+
+                    location.href = naverMapAppUrl;
+                    setTimeout(() => {
+                      window.open(naverMapWebUrl, '_blank');
+                    }, 500);
+                  }}
+                >
+                  <PinIcon />
+                  길 찾기 (네이버 지도)
+                </Button>
+                <Button
+                  variant="outline"
+                  class="mt-4 p-0 w-full"
+                  onclick={() => {
+                    const googleMapWebUrl = `https://www.google.com/maps/dir/?api=1&destination=${museum.mapy},${museum.mapx}`;
+                    setTimeout(() => {
+                      window.open(googleMapWebUrl, '_blank');
+                    }, 500);
+                  }}
+                >
+                  <PinIcon />
+                  길 찾기 (구글 지도)
+                </Button>
+                <Button
+                  variant="outline"
+                  class="mt-4 p-0 w-full"
+                  onclick={() => {
+                    if (map) {
+                      const kakaoMapAppUrl = `kakaomap://map?p=${museum.mapy},${museum.mapx}(${museum.title})`;
+                      const kakaoMapWebUrl = `https://map.kakao.com/link/map/${museum.title},${museum.mapy},${museum.mapx}`;
+
+                      location.href = kakaoMapAppUrl;
+                      setTimeout(() => {
+                        window.open(kakaoMapWebUrl, '_blank');
+                      }, 500);
+                    }
+                  }}
+                >
+                  <PinIcon />
+                  길 찾기 (카카오맵)
+                </Button>
               </div>
             </div>
           </Card.Content>
