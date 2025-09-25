@@ -12,6 +12,7 @@
   import { Button } from '$/lib/components/ui/button';
   import { Badge } from '$/lib/components/ui/badge';
   import { getCcbaItemResponse } from './(search)/api/search/ccbaSearch';
+  import type { CcbaItemResponse } from '$/types/search.types';
 
   // Props 인터페이스에서 사용하는 PageData 타입은 './$types'에서 가져온 것
   interface Props {
@@ -208,9 +209,16 @@
     );
 
     // 유적지나 문화유산을 검색해서 마커를 추가하는 기능
-    const searhedCcbaLocations = await getCcbaItemResponse(query, 1, 100);
+    const searchedCcbaLocations: CcbaItemResponse[] = await fetch(
+      `/api/search/ccbaInfo?query=${encodeURIComponent(query)}`,
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      }
+    ).then((res) => res.json());
+
     // ccba 정보 파싱 및 정보 정리
-    const ccbaLocations = searhedCcbaLocations
+    const ccbaLocations = searchedCcbaLocations
       .map((item) => ({
         contentid: Number(item.ccbaKdcd + item.ccbaAsno),
         title: item.ccbaMnm1 || '제목 없음',
