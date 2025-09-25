@@ -23,11 +23,13 @@
   const ccba: ccbaDtApiResponse | null = $derived(data.ccba);
   const images: ccbaImageApiItem[] | null = $derived(data.imgs);
   const badges: string[] = $derived([
-    ccba!.item.bcodeName,
-    ccba!.item.ccbaPoss,
-    ccba!.item.gcodeName,
-    ccba!.item.mcodeName,
-    ccba!.item.scodeName,
+    ...new Set([
+      ccba!.item.bcodeName,
+      ccba!.item.ccbaPoss,
+      ccba!.item.gcodeName,
+      ccba!.item.mcodeName,
+      ccba!.item.scodeName,
+    ]),
   ]);
 
   // carousel api
@@ -95,7 +97,7 @@
 
     <div slot="badges" class="flex items-center gap-2 mb-2">
       <Badge variant="default">{ccba.item.ccmaName}</Badge>
-      {#each badges as badge (badge)}
+      {#each badges as badge, i (i)}
         <Badge variant="outline" class="text-white border-white">
           {badge}
         </Badge>
