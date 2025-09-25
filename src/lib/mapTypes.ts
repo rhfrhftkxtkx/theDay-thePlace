@@ -39,6 +39,7 @@ export interface LocationData {
 	type: string;
 	addr1?: string | null;
 	overview?: string | null;
+	overviewSource?: string | null; // 개요 정보의 출처 (예: 'kto', 'ccba' 등)
 }
 
 // 서버 API(/api/locations)의 최종 응답 형태이자,
