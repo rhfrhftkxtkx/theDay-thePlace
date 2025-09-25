@@ -18,7 +18,8 @@ const ASNO_LENGTH: number = 13;
 export async function ccbaItemSearch(
 	ccbaFilter: Category | undefined,
 	Keyword: string,
-	pageNo: number
+	pageNo: number,
+	pageUnit: number = 10
 ): Promise<SearchedCcbaItem[]> {
 	console.log('[ccbaSearch] ccbaItemSearch: called');
 	const isInvalidFilter =
@@ -32,7 +33,7 @@ export async function ccbaItemSearch(
 	// API query에 한 항목을 여러 개 요청 할 수 없으므로, map을 사용하여 해당 동작을 하도록 구현
 	if (isInvalidFilter) {
 		await fetch(
-			`${CCBA_API_URL}?pageIndex=${pageNo}&pageUnit=10${Keyword ? `&ccbaMnm1=${encodeURIComponent(Keyword)}` : ''}`
+			`${CCBA_API_URL}?pageIndex=${pageNo}&pageUnit=${pageUnit}${Keyword ? `&ccbaMnm1=${encodeURIComponent(Keyword)}` : ''}`
 		).then(async (response) => {
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);
@@ -46,13 +47,8 @@ export async function ccbaItemSearch(
 			const cat3: Category[] = cat2.item;
 			for (const item of cat3) {
 				console.log(`[ccbaSearch] Fetching items for category: ${cat2.name} - ${item.name}`);
-				console.log(
-					`${CCBA_API_URL}?${cat2.code}=${item.code}pageIndex=${pageNo}&pageUnit=10${
-						Keyword ? `&ccbaMnm1=${encodeURIComponent(Keyword)}` : ''
-					}`
-				);
 				await fetch(
-					`${CCBA_API_URL}?${cat2.code}=${item.code}&pageIndex=${pageNo}&pageUnit=10${
+					`${CCBA_API_URL}?${cat2.code}=${item.code}&pageIndex=${pageNo}&pageUnit=${pageUnit}${
 						Keyword ? `&ccbaMnm1=${encodeURIComponent(Keyword)}` : ''
 					}`
 				).then(async (response) => {
@@ -77,6 +73,26 @@ export async function ccbaItemSearch(
 	if (Keyword) {
 		result = result.filter((item) => item.ccbaMnm1.toLowerCase().includes(Keyword.toLowerCase()));
 	}
+
+	return result;
+}
+
+export async function getCcbaItemResponse(
+	Keyword: string,
+	pageNo: number,
+	pageUnit: number = 10
+): Promise<CcbaItemResponse[]> {
+	let result: CcbaItemResponse[] = [];
+
+	await fetch(
+		`${CCBA_API_URL}?pageIndex=${pageNo}&pageUnit=${pageUnit}${Keyword ? `&ccbaMnm1=${encodeURIComponent(Keyword)}` : ''}`
+	).then(async (response) => {
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+		const xml = await response.text();
+		result = parseXMLToCcbaItemResponse(xml);
+	});
 
 	return result;
 }
