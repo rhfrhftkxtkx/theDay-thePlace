@@ -77,6 +77,27 @@ export async function ccbaItemSearch(
 	return result;
 }
 
+export async function getCcbaItemResponse(
+	Keyword: string,
+	pageNo: number,
+	pageUnit: number = 10
+): Promise<CcbaItemResponse[]> {
+	console.log('[ccbaSearch] getCcbaItemResponse: called');
+	let result: CcbaItemResponse[] = [];
+
+	await fetch(
+		`${CCBA_API_URL}?pageIndex=${pageNo}&pageUnit=${pageUnit}${Keyword ? `&ccbaMnm1=${encodeURIComponent(Keyword)}` : ''}`
+	).then(async (response) => {
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+		const xml = await response.text();
+		result = parseXMLToCcbaItemResponse(xml);
+	});
+
+	return result;
+}
+
 async function getCCbaItems(responseXML: string): Promise<SearchedCcbaItem[]> {
 	const ccbaItems = parseXMLToCcbaItemResponse(responseXML);
 

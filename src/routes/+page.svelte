@@ -11,6 +11,7 @@
   import { enhance } from '$app/forms'; // use:enhance를 위해 추가
   import { Button } from '$/lib/components/ui/button';
   import { Badge } from '$/lib/components/ui/badge';
+  import { getCcbaItemResponse } from './(search)/api/search/ccbaSearch';
 
   // Props 인터페이스에서 사용하는 PageData 타입은 './$types'에서 가져온 것
   interface Props {
@@ -58,6 +59,50 @@
   async function openBottomSheet(location: LocationData): Promise<void> {
     selectedLocation = location; // 클릭된 위치 정보를 상태 변수에 저장
     isBottomSheetOpen = true; // 하단 시트 열기
+
+    if (location.type === 'ccba') {
+      if (!location.overviewSource) {
+        selectedLocation = {
+          ...location,
+          overview: '상세 정보가 없습니다.',
+        };
+        return;
+      }
+      try {
+        console.log(location.overviewSource);
+        const response = await fetch(
+          `/api/search/ccbaOverview${location.overviewSource}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+
+        console.log(response);
+        const result = await response.json();
+        console.log(result);
+
+        if (response.ok && result) {
+          // 상세 정보가 정상적으로 로딩된 경우 상태 변수 업데이트
+          selectedLocation = { ...location, overview: result };
+        } else {
+          // 상세 정보 로딩 실패 시 기본 메시지 설정
+          selectedLocation = {
+            ...location,
+            overview:
+              '정보를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+          };
+        }
+      } catch (error) {
+        // 네트워크 오류 등 fetch 실패 시 기본 메시지 설정
+        console.error('상세 정보 로딩 실패:', error);
+        selectedLocation = {
+          ...location,
+          overview: '서버와 통신할 수 없습니다. 네트워크 연결을 확인해 주세요.',
+        };
+      }
+      return;
+    }
 
     // 상세 정보(overview)가 없으면 API 호출하여 불러오기
     if (!location.overview) {
@@ -153,6 +198,22 @@
         loc.overview?.toLowerCase().includes(query) // 개요
     );
 
+    const searhedCcbaLocations = await getCcbaItemResponse(query, 1, 100);
+    const ccbaLocations = searhedCcbaLocations.map((item) => ({
+      contentid: Number(item.ccbaKdcd + item.ccbaAsno),
+      title: item.ccbaMnm1 || '제목 없음',
+      mapy: item.latitude || '',
+      mapx: item.longitude || '',
+      type: 'ccba',
+      addr1:
+        `${item.ccbaCtcdNm || ''} ${item.ccsiName || ''}`.trim() ||
+        '주소 정보 없음',
+      overview: null,
+      overviewSource: `?ccbaKdcd=${item.ccbaKdcd}&ccbaAsno=${item.ccbaAsno}&ccbaCtcd=${item.ccbaCtcd}`,
+    }));
+
+    filteredLocations.push(...ccbaLocations);
+
     if (filteredLocations.length > 0) {
       isSearchActive = true; // 검색 중 상태로 변경
       searchResultItems = filteredLocations; // 필터링 된 결과를 상태 변수에 저장
@@ -202,6 +263,8 @@
         return '기념관';
       case 'exhibition':
         return '전시관';
+      case 'ccba':
+        return '문화재/유적지';
       default:
         return '장소';
     }
