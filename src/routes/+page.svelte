@@ -52,6 +52,11 @@
     marker: any;
     infowindow: any;
   }> = []; // 현재 지도에 표시된 모든 마커와 관련 데이터가 담긴 배열
+  let currentCcbaMarkers: Array<{
+    locationData: LocationData;
+    marker: any;
+    infowindow: any;
+  }> = []; // 현재 지도에 표시된 모든 마커와 관련 데이터가 담긴 배열
   let mapClickListener: any = null; // 지도 클릭 이벤트를 나중에 제거하기 위한 변수
 
   // --- 함수 ---
@@ -69,7 +74,6 @@
         return;
       }
       try {
-        console.log(location.overviewSource);
         const response = await fetch(
           `/api/search/ccbaOverview${location.overviewSource}`,
           {
@@ -78,9 +82,7 @@
           }
         );
 
-        console.log(response);
         const result = await response.json();
-        console.log(result);
 
         if (response.ok && result) {
           // 상세 정보가 정상적으로 로딩된 경우 상태 변수 업데이트
@@ -159,6 +161,13 @@
     isSearchResultsPanelVisible = false;
     searchResultItems = [];
     searchQuery = '';
+
+    // ccba markers만 삭제
+    currentCcbaMarkers.forEach((item) => {
+      item.marker.setMap(null);
+      if (item.infowindow) item.infowindow.close();
+    });
+
     if (isBottomSheetOpen) closeBottomSheet();
     setMarkersVisibility(true);
     // 검색 종료 후 모든 마커를 재 생성할 때 줌 레벨이 9보다 크면 마커 숨기기
@@ -198,37 +207,92 @@
         loc.overview?.toLowerCase().includes(query) // 개요
     );
 
+    // 유적지나 문화유산을 검색해서 마커를 추가하는 기능
     const searhedCcbaLocations = await getCcbaItemResponse(query, 1, 100);
-    const ccbaLocations = searhedCcbaLocations.map((item) => ({
-      contentid: Number(item.ccbaKdcd + item.ccbaAsno),
-      title: item.ccbaMnm1 || '제목 없음',
-      mapy: item.latitude || '',
-      mapx: item.longitude || '',
-      type: 'ccba',
-      addr1:
-        `${item.ccbaCtcdNm || ''} ${item.ccsiName || ''}`.trim() ||
-        '주소 정보 없음',
-      overview: null,
-      overviewSource: `?ccbaKdcd=${item.ccbaKdcd}&ccbaAsno=${item.ccbaAsno}&ccbaCtcd=${item.ccbaCtcd}`,
-    }));
+    // ccba 정보 파싱 및 정보 정리
+    const ccbaLocations = searhedCcbaLocations
+      .map((item) => ({
+        contentid: Number(item.ccbaKdcd + item.ccbaAsno),
+        title: item.ccbaMnm1 || '제목 없음',
+        mapy: item.latitude || '',
+        mapx: item.longitude || '',
+        type: 'ccba',
+        addr1:
+          `${item.ccbaCtcdNm || ''} ${item.ccsiName || ''}`.trim() ||
+          '주소 정보 없음',
+        overview: null,
+        overviewSource: `?ccbaKdcd=${item.ccbaKdcd}&ccbaAsno=${item.ccbaAsno}&ccbaCtcd=${item.ccbaCtcd}`,
+      }))
+      .filter((loc) => loc.mapx !== '0' && loc.mapy !== '0'); // 유효한 좌표가 있는 항목만 필터링
 
-    filteredLocations.push(...ccbaLocations);
+    // 찾은 ccba 정보에 기반 하여 마커 생성
+    ccbaLocations.forEach((loc) => {
+      // marker의 위치 정보 확인
+      const makerPos = new window.kakao.maps.LatLng(
+        parseFloat(loc.mapy),
+        parseFloat(loc.mapx)
+      );
+      const marker = new window.kakao.maps.Marker({
+        position: makerPos,
+        // map은 현재 메인 화면에 표시된 지도 객체
+        map: map,
+      });
+      const safeTitle = escapeHTML(loc.title);
+      const iwContent = `<div style="padding:5px;font-size:12px;text-align:center;min-width:120px;"><strong>${safeTitle}</strong><br><span style="font-size:10px;color:gray;">(유적지/문화재)</span></div>`;
+      const infowindow = new window.kakao.maps.InfoWindow({
+        content: iwContent,
+      });
 
-    if (filteredLocations.length > 0) {
+      // 이벤트 리스너 등록
+      window.kakao.maps.event.addListener(marker, 'mouseover', () => {
+        infowindow.open(map, marker);
+      });
+      window.kakao.maps.event.addListener(marker, 'mouseout', () => {
+        infowindow.close();
+      });
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        openBottomSheet(loc);
+      });
+
+      // 현재 지도에 표시된 ccba 마커 배열에 추가
+      currentCcbaMarkers.push({
+        marker,
+        infowindow: infowindow,
+        locationData: loc,
+      });
+    });
+
+    if (filteredLocations.length > 0 || ccbaLocations.length > 0) {
       isSearchActive = true; // 검색 중 상태로 변경
       searchResultItems = filteredLocations; // 필터링 된 결과를 상태 변수에 저장
+      searchResultItems = searchResultItems.concat(ccbaLocations);
       isSearchResultsPanelVisible = true; // 검색 결과 패널 표시
       const filteredContentIds = new Set(
         filteredLocations.map((loc: LocationData) => Number(loc.contentid))
       ) as Set<number>;
-      setMarkersVisibility(true, { filterIds: filteredContentIds }); // 필터링 된 마커만 지도에 표시
+
+      if (filteredContentIds.size === 0) {
+        // 필터링 된 결과가 없으면 빈 Set으로 모든 마커 숨기기
+        setMarkersVisibility(false);
+      } else {
+        setMarkersVisibility(true, { filterIds: filteredContentIds }); // 필터링 된 마커만 지도에 표시
+      }
 
       // 필터링 된 검색 결과 마커가 모두 보이도록 지도 중심과 줌 레벨 조정
       const bounds = new window.kakao.maps.LatLngBounds();
       let visibleMarkersForBounds = 0;
-      currentMarkers.forEach((Item) => {
-        if (Item.marker.getMap()) {
-          bounds.extend(Item.marker.getPosition());
+
+      // 현재 표시된 마커들 중에서 지도에 보이는 마커들의 위치를 기준으로 bounds 확장
+      // ccba 마커들도 포함하여 bounds 확장
+      [...currentMarkers, ...currentCcbaMarkers].forEach((item) => {
+        if (item.marker.getMap()) {
+          // marker가 지도에 표시된 Position 가져오기
+          const pos = item.marker.getPosition();
+          // 위치 정보가 유효한지 확인
+          if (isNaN(pos.La) || isNaN(pos.Ma)) return;
+
+          // 위치 정보를 기반으로 bounds 확장
+          bounds.extend(item.marker.getPosition());
           visibleMarkersForBounds++;
         }
       });
@@ -588,12 +652,19 @@
                         variant="outline"
                         class="mt-2 w-full"
                         onclick={() => {
+                          console.log(selectedLocation?.type, selectedLocation);
                           if (
-                            selectedLocation?.type == 'museum' ||
-                            selectedLocation?.type == 'memorial' ||
-                            selectedLocation?.type == 'exhibition'
+                            selectedLocation?.type === 'museum' ||
+                            selectedLocation?.type === 'memorial' ||
+                            selectedLocation?.type === 'exhibition'
                           ) {
                             window.location.href = `/museum?contentId=${selectedLocation.contentid}`;
+                            // ccba이면 개별 페이지로 이동
+                          } else if (
+                            selectedLocation?.type === 'ccba' &&
+                            selectedLocation?.overviewSource
+                          ) {
+                            window.location.href = `/ccba${selectedLocation.overviewSource}`;
                           }
                         }}
                       >
@@ -635,6 +706,12 @@
                         selectedLocation?.type == 'exhibition'
                       ) {
                         window.location.href = `/museum?contentId=${selectedLocation.contentid}`;
+                        // ccba이면 개별 페이지로 이동
+                      } else if (
+                        selectedLocation?.type === 'ccba' &&
+                        selectedLocation?.overviewSource
+                      ) {
+                        window.location.href = `/ccba${selectedLocation.overviewSource}`;
                       }
                     }}
                   >

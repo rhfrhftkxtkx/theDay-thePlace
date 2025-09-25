@@ -82,7 +82,6 @@ export async function getCcbaItemResponse(
 	pageNo: number,
 	pageUnit: number = 10
 ): Promise<CcbaItemResponse[]> {
-	console.log('[ccbaSearch] getCcbaItemResponse: called');
 	let result: CcbaItemResponse[] = [];
 
 	await fetch(
