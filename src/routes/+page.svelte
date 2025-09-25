@@ -228,12 +228,12 @@
     // 찾은 ccba 정보에 기반 하여 마커 생성
     ccbaLocations.forEach((loc) => {
       // marker의 위치 정보 확인
-      const makerPos = new window.kakao.maps.LatLng(
+      const markerPos = new window.kakao.maps.LatLng(
         parseFloat(loc.mapy),
         parseFloat(loc.mapx)
       );
       const marker = new window.kakao.maps.Marker({
-        position: makerPos,
+        position: markerPos,
         // map은 현재 메인 화면에 표시된 지도 객체
         map: map,
       });
@@ -289,7 +289,7 @@
           // marker가 지도에 표시된 Position 가져오기
           const pos = item.marker.getPosition();
           // 위치 정보가 유효한지 확인
-          if (isNaN(pos.La) || isNaN(pos.Ma)) return;
+          if (isNaN(pos.getLat()) || isNaN(pos.getLng())) return;
 
           // 위치 정보를 기반으로 bounds 확장
           bounds.extend(item.marker.getPosition());
@@ -652,7 +652,6 @@
                         variant="outline"
                         class="mt-2 w-full"
                         onclick={() => {
-                          console.log(selectedLocation?.type, selectedLocation);
                           if (
                             selectedLocation?.type === 'museum' ||
                             selectedLocation?.type === 'memorial' ||

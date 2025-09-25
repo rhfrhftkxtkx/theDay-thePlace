@@ -13,7 +13,7 @@ export async function GET({ url }: RequestEvent): Promise<Response> {
 		const xml = await response.text();
 		const result = parseXml(xml);
 
-		return new Response(JSON.stringify(result.item.content || ''), {
+		return new Response(JSON.stringify(result.item?.content || ''), {
 			headers: { 'Content-Type': 'application/json' }
 		});
 	});
